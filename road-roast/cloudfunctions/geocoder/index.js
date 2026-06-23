@@ -37,7 +37,17 @@ exports.main = async (event, context) => {
     if (data.status === 0) {
       const addr = data.result
       const pois = addr.pois || []
-      const roadName = pois.length > 0 ? pois[0].title : (addr.formatted_addresses?.recommend || addr.address)
+
+      // 调试：打印 POI 信息，确认 category 格式
+      console.log('=== geocoder debug ===')
+      console.log('address:', addr.address)
+      console.log('recommend:', addr.formatted_addresses?.recommend)
+      console.log('road info:', JSON.stringify(addr.road))
+      pois.slice(0, 5).forEach((p, i) => {
+        console.log(`poi[${i}]: title=${p.title}, category=${p.category}, distance=${p._distance}`)
+      })
+
+      const roadName = pickRoadName(pois, addr)
 
       return {
         code: 0,
@@ -58,6 +68,24 @@ exports.main = async (event, context) => {
     console.error('geocoder request error:', e)
     return { code: -1, message: '识别失败: ' + (e.message || '请重试') }
   }
+}
+
+// 从 POI 和地址中提取路名
+function pickRoadName(pois, addr) {
+  // 1. 优先找 category 含"道路"的 POI
+  const roadPoi = pois.find((p) => p.category && p.category.includes('道路'))
+  if (roadPoi) return roadPoi.title
+
+  // 2. 从 address 中正则提取路名（如"广东省广州市越秀区解放北路" → "解放北路"）
+  const match = addr.address?.match(/[一-龥]+(?:路|街|道|巷|弄|胡同)/)
+  if (match) return match[0]
+
+  // 3. 从 recommend 取：仅当它本身是路名（末尾是路名关键词，而非建筑名的一部分）
+  const recommend = addr.formatted_addresses?.recommend
+  if (recommend && /[一-龥]+(?:路|街|道|巷|弄|胡同)$/.test(recommend)) return recommend
+
+  // 4. 兜底
+  return recommend || addr.address || '未知路段'
 }
 
 // URL 参数拼接（带编码）
