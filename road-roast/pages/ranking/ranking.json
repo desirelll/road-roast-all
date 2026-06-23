@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "road-item": "/components/road-item/road-item"
+  },
+  "navigationBarTitleText": "排行榜",
+  "enablePullDownRefresh": true
+}

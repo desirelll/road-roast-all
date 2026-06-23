@@ -1,0 +1,50 @@
+<view class="container">
+  <!-- 用户信息头部 -->
+  <view class="user-header">
+    <view class="avatar-wrap">
+      <image
+        class="user-avatar"
+        src="{{userInfo.avatar || '/images/default-avatar.png'}}"
+        mode="aspectFill"
+      />
+      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar"></button>
+    </view>
+    <view class="user-info">
+      <input
+        class="nickname-input"
+        type="nickname"
+        placeholder="点击设置昵称"
+        value="{{userInfo.nickname}}"
+        bindchange="onNicknameChange"
+      />
+      <view class="user-stats">累计贴罚单 <text class="count">{{totalTickets}}</text> 张</view>
+    </view>
+  </view>
+
+  <!-- 罚单历史 -->
+  <view class="section">
+    <view class="section-title">我的罚单</view>
+    <view class="ticket-list" wx:if="{{tickets.length > 0}}">
+      <view
+        class="ticket-item"
+        wx:for="{{tickets}}"
+        wx:key="id"
+        bindtap="onTicketTap"
+        data-road-id="{{item.roadId}}"
+      >
+        <view class="ticket-date">{{item.createdAt}}</view>
+        <view class="ticket-road">{{item.roadName}}</view>
+        <view class="ticket-comment" wx:if="{{item.comment}}">"{{item.comment}}"</view>
+      </view>
+    </view>
+    <view class="empty-tickets" wx:elif="{{!loading}}">
+      <text>还没有贴过罚单</text>
+      <navigator url="/pages/index/index" class="go-ticket">去贴一张</navigator>
+    </view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

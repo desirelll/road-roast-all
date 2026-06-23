@@ -1,0 +1,37 @@
+<view class="container">
+  <!-- 路段信息头部 -->
+  <view class="road-header" wx:if="{{road}}">
+    <view class="road-name">{{road.fullName || road.name}}</view>
+    <view class="road-stats">
+      <text class="ticket-count">{{road.totalTickets || 0}}</text>
+      <text class="ticket-label">张罚单</text>
+    </view>
+  </view>
+  <view class="road-header skeleton" wx:else>
+    <view class="skeleton-line long"></view>
+    <view class="skeleton-line short"></view>
+  </view>
+
+  <!-- 评论列表 -->
+  <view class="section">
+    <view class="section-title">吐槽列表</view>
+    <view wx:if="{{comments.length > 0}}">
+      <view wx:for="{{comments}}" wx:key="id">
+        <comment-item comment="{{item}}" />
+      </view>
+    </view>
+    <view class="empty-comments" wx:elif="{{!loading}}">
+      <text>还没有人吐槽，快来抢沙发</text>
+    </view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 底部贴罚单按钮 -->
+  <view class="bottom-bar">
+    <button class="post-btn" bindtap="onPostTicket">给这条路贴罚单</button>
+  </view>
+</view>

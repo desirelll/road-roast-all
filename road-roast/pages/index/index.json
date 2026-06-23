@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "ticket-panel": "/components/ticket-panel/ticket-panel",
+    "share-canvas": "/components/share-canvas/share-canvas"
+  },
+  "navigationBarTitleText": "贴罚单"
+}

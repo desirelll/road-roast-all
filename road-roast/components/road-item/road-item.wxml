@@ -1,0 +1,14 @@
+<view class="road-item {{rank <= 3 ? 'top-' + rank : ''}}">
+  <view class="rank-badge">
+    <text wx:if="{{rank <= 3}}" class="rank-medal">{{rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}}</text>
+    <text wx:else class="rank-number">{{rank}}</text>
+  </view>
+  <view class="road-info">
+    <text class="road-name">{{road.fullName || road.name}}</text>
+    <text class="road-city" wx:if="{{road.city}}">{{road.city}}</text>
+  </view>
+  <view class="ticket-count">
+    <text class="count">{{road.totalTickets || 0}}</text>
+    <text class="label">罚单</text>
+  </view>
+</view>

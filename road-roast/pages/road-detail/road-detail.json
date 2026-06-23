@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "comment-item": "/components/comment-item/comment-item"
+  },
+  "navigationBarTitleText": "路段详情"
+}

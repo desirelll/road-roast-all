@@ -1,0 +1,106 @@
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-icon">🔍</view>
+    <input
+      class="search-input"
+      placeholder="搜索路段名..."
+      value="{{searchKeyword}}"
+      bindinput="onSearchInput"
+      confirm-type="search"
+      adjust-position="{{false}}"
+    />
+    <view class="search-clear" wx:if="{{searchKeyword}}" bindtap="onClearSearch">✕</view>
+  </view>
+
+  <!-- 搜索结果列表 -->
+  <view class="search-results" wx:if="{{searchResults.length > 0}}">
+    <view
+      class="search-item"
+      wx:for="{{searchResults}}"
+      wx:key="id"
+      bindtap="onSearchSelect"
+      data-index="{{index}}"
+    >
+      <view class="search-item-left">
+        <text class="search-item-name">{{item.name}}</text>
+        <text class="search-item-addr">{{item.address}}</text>
+      </view>
+      <view class="search-item-right">
+        <text class="search-item-tickets" wx:if="{{item.ticketCount > 0}}">{{item.ticketCount}} 罚单</text>
+        <text class="search-item-badge" wx:elif="{{item.isExisting}}">已有</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索无结果 -->
+  <view class="search-results" wx:if="{{searchKeyword && searchResults.length === 0 && !posting}}">
+    <view class="no-result">
+      <text>没找到 "{{searchKeyword}}"，试试其他关键词</text>
+    </view>
+  </view>
+
+  <!-- 地图 -->
+  <view class="map-container" wx:if="{{mapLoaded}}">
+    <map
+      id="roadMap"
+      latitude="{{latitude}}"
+      longitude="{{longitude}}"
+      markers="{{markers}}"
+      scale="15"
+      show-location
+      bindtap="onMapTap"
+      bindmarkertap="onMarkerTap"
+    />
+    <view class="locate-btn" bindtap="onLocateUser">
+      <text>⊕</text>
+    </view>
+  </view>
+
+  <!-- 定位失败降级 -->
+  <view class="map-placeholder" wx:else>
+    <text class="map-placeholder-icon">📍</text>
+    <text class="map-placeholder-text">无法获取定位</text>
+    <text class="map-placeholder-hint">请授权定位或搜索路段名</text>
+    <button class="retry-btn" bindtap="onLocateUser">重新获取定位</button>
+  </view>
+
+  <!-- 贴罚单面板（仅输入态） -->
+  <ticket-panel
+    wx:if="{{showPanel}}"
+    road="{{selectedRoad}}"
+    posting="{{posting}}"
+    bind:post="onPostTicket"
+    bind:close="onClosePanel"
+  />
+
+  <!-- 成功弹窗：页面直接控制，不经过任何组件 -->
+  <view class="result-overlay" wx:if="{{showResult}}" bindtap="onCloseResult">
+    <view class="result-panel" catchtap="">
+      <view class="r-stamp {{resultAnim ? 'r-stamp-pop' : ''}}">
+        <text class="r-stamp-text">罚</text>
+      </view>
+      <view class="r-title">罚单已贴出！</view>
+      <view class="r-road">{{ticketResult.roadName}}</view>
+      <view class="r-count">
+        累计 <text class="r-count-num">{{ticketResult.totalTickets}}</text> 张罚单
+      </view>
+      <view class="r-btns" catchtap="">
+        <button class="r-btn chat" open-type="share">💬 发给朋友</button>
+        <view class="r-btn moments" bindtap="onShowShareCanvas">📷 朋友圈图片</view>
+      </view>
+      <view class="r-close" bindtap="onCloseResult">继续贴罚单</view>
+    </view>
+  </view>
+
+  <!-- 朋友圈分享图 -->
+  <share-canvas
+    wx:if="{{showShareCanvas}}"
+    show="{{showShareCanvas}}"
+    road-name="{{ticketResult.roadName}}"
+    ticket-count="{{ticketResult.totalTickets}}"
+    city-name="{{ticketCity}}"
+    road-id="{{ticketResult.roadId}}"
+    bind:close="onHideShareCanvas"
+  />
+</view>

@@ -1,0 +1,53 @@
+page {
+  /* 主题色 */
+  --primary: #E74C3C;
+  --primary-light: #FF6B5B;
+  --primary-bg: #FDE8E8;
+
+  /* 功能色 */
+  --success: #27AE60;
+  --warning: #F39C12;
+  --info: #3498DB;
+  --danger: #E74C3C;
+
+  /* 文字色 */
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-hint: #999999;
+  --text-white: #FFFFFF;
+
+  /* 背景色 */
+  --bg-page: #F5F5F5;
+  --bg-white: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-input: #F5F5F5;
+
+  /* 边框 */
+  --border-color: #F0F0F0;
+  --border-light: #F5F5F5;
+
+  /* 圆角 */
+  --radius-sm: 6rpx;
+  --radius-md: 12rpx;
+  --radius-lg: 20rpx;
+  --radius-round: 40rpx;
+
+  /* 间距 */
+  --spacing-xs: 8rpx;
+  --spacing-sm: 16rpx;
+  --spacing-md: 24rpx;
+  --spacing-lg: 30rpx;
+  --spacing-xl: 40rpx;
+
+  /* 字号 */
+  --font-xs: 22rpx;
+  --font-sm: 24rpx;
+  --font-md: 28rpx;
+  --font-lg: 32rpx;
+  --font-xl: 36rpx;
+  --font-xxl: 40rpx;
+
+  /* 阴影 */
+  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}

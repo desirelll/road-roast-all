@@ -1,0 +1,9 @@
+{
+  "name": "road-ranking",
+  "version": "1.0.0",
+  "description": "排行榜查询（全国/城市，本周/本月/本年/总榜）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

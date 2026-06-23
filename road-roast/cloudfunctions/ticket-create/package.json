@@ -1,0 +1,9 @@
+{
+  "name": "ticket-create",
+  "version": "1.0.0",
+  "description": "贴罚单：校验每日限制、创建Ticket、原子更新Road.totalTickets、内容安全检测",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

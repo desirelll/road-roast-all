@@ -1,0 +1,79 @@
+<view class="container">
+  <!-- 范围切换 -->
+  <view class="filter-bar">
+    <view class="scope-tabs">
+      <view
+        class="scope-tab {{scope === 'national' ? 'active' : ''}}"
+        bindtap="onScopeChange"
+        data-scope="national"
+      >
+        全国榜
+      </view>
+      <view
+        class="scope-tab {{scope === 'city' ? 'active' : ''}}"
+        bindtap="onScopeChange"
+        data-scope="city"
+      >
+        我的城市
+      </view>
+    </view>
+
+    <!-- 时间筛选 -->
+    <view class="period-tabs">
+      <view
+        class="period-tab {{period === 'week' ? 'active' : ''}}"
+        bindtap="onPeriodChange"
+        data-period="week"
+      >
+        本周
+      </view>
+      <view
+        class="period-tab {{period === 'month' ? 'active' : ''}}"
+        bindtap="onPeriodChange"
+        data-period="month"
+      >
+        本月
+      </view>
+      <view
+        class="period-tab {{period === 'year' ? 'active' : ''}}"
+        bindtap="onPeriodChange"
+        data-period="year"
+      >
+        本年
+      </view>
+      <view
+        class="period-tab {{period === 'all' ? 'active' : ''}}"
+        bindtap="onPeriodChange"
+        data-period="all"
+      >
+        总榜
+      </view>
+    </view>
+  </view>
+
+  <!-- 排行榜列表 -->
+  <view class="ranking-list" wx:if="{{rankings.length > 0}}">
+    <view
+      wx:for="{{rankings}}"
+      wx:key="roadId"
+      bindtap="onRoadTap"
+      data-road-id="{{item.roadId}}"
+    >
+      <road-item
+        rank="{{index + 1}}"
+        road="{{item}}"
+      />
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:elif="{{!loading}}">
+    <text class="empty-text">还没有数据，快去贴罚单吧</text>
+    <navigator url="/pages/index/index" class="empty-btn">去贴罚单</navigator>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

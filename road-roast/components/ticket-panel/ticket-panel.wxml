@@ -1,0 +1,86 @@
+<!-- 遮罩 -->
+<view class="overlay" bindtap="onOverlayTap">
+  <view class="panel" capture-bind:tap="onPanelTap" style="margin-bottom: {{keyboardHeight}}px">
+
+    <!-- 成功状态 -->
+    <block wx:if="{{state === 'success'}}">
+      <view class="success-view">
+        <!-- 盖章动画 -->
+        <view class="stamp-container">
+          <view class="stamp {{animating ? 'stamp-pop' : ''}}">
+            <text class="stamp-text">罚</text>
+          </view>
+        </view>
+
+        <!-- 结果文案 -->
+        <view class="result-title">罚单已贴出！</view>
+        <view class="result-road">{{result.roadName}}</view>
+        <view class="result-count">
+          累计 <text class="result-count-num">{{result.totalTickets}}</text> 张罚单
+        </view>
+
+        <!-- 分享按钮 -->
+        <view class="share-buttons">
+          <button class="share-btn chat" open-type="share">
+            <text class="share-btn-icon">💬</text>
+            <text>发给朋友</text>
+          </button>
+          <view class="share-btn timeline" bindtap="onShareTimeline">
+            <text class="share-btn-icon">📷</text>
+            <text>朋友圈图片</text>
+          </view>
+        </view>
+
+        <!-- 关闭 -->
+        <view class="close-link" bindtap="onClose">继续贴罚单</view>
+      </view>
+    </block>
+
+    <!-- 输入状态 -->
+    <block wx:else>
+      <!-- 拖拽条 -->
+      <view class="drag-bar">
+        <view class="drag-bar-inner"></view>
+      </view>
+
+      <!-- 路段信息 -->
+      <view class="road-info" wx:if="{{road}}">
+        <view class="road-icon">📍</view>
+        <view class="road-detail">
+          <text class="road-name">{{road.fullName || (road.province + '-' + road.city + '-' + road.name) || road.name}}</text>
+          <text class="road-tickets" wx:if="{{road.ticketCount > 0}}">已有 {{road.ticketCount}} 张罚单</text>
+        </view>
+      </view>
+
+      <!-- 吐槽输入 -->
+      <view class="comment-area">
+        <textarea
+          class="comment-input"
+          placeholder="说两句吐槽（可选，最多50字）"
+          maxlength="50"
+          value="{{comment}}"
+          bindinput="onCommentInput"
+          bindfocus="onTextareaFocus"
+          bindblur="onTextareaBlur"
+          auto-height
+          adjust-position="{{false}}"
+          cursor-spacing="120"
+        />
+        <view class="char-count {{comment.length >= 50 ? 'full' : ''}}">{{comment.length}}/50</view>
+      </view>
+
+      <!-- 提交按钮 -->
+      <button
+        class="post-btn {{posting ? 'submitting' : ''}}"
+        bindtap="onPost"
+        disabled="{{posting}}"
+      >
+        <view wx:if="{{posting}}" class="posting-inner">
+          <text class="posting-dot"></text>
+          <text>贴罚单中...</text>
+        </view>
+        <text wx:else>贴罚单</text>
+      </button>
+    </block>
+  </view>
+</view>

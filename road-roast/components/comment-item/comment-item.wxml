@@ -1,0 +1,16 @@
+<view class="comment-item">
+  <image
+    class="comment-avatar"
+    src="{{comment.avatar || '/images/default-avatar.png'}}"
+    mode="aspectFill"
+  />
+  <view class="comment-body">
+    <view class="comment-header">
+      <text class="comment-nickname">{{comment.nickname || '匿名'}}</text>
+      <text class="comment-time">{{comment.createdAt}}</text>
+    </view>
+    <view class="comment-content" wx:if="{{comment.comment}}">
+      {{comment.comment}}
+    </view>
+  </view>
+</view>
