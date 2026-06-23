@@ -1,6 +1,7 @@
 {
   "usingComponents": {
-    "comment-item": "/components/comment-item/comment-item"
+    "comment-item": "/components/comment-item/comment-item",
+    "ticket-panel": "/components/ticket-panel/ticket-panel"
   },
   "navigationBarTitleText": "路段详情"
 }

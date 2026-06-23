@@ -79,6 +79,15 @@ Page({
   onScopeChange(e) {
     const scope = e.currentTarget.dataset.scope
     if (scope === this.data.scope) return
+
+    // 切换到"我的城市"但定位失败时，提示用户
+    if (scope === 'city' && !this.data.city) {
+      wx.showToast({ title: '定位失败，请授权定位后重试', icon: 'none' })
+      // 重新尝试定位
+      this.getUserCity()
+      return
+    }
+
     this.setData({ scope, page: 1, rankings: [], hasMore: true }, () => {
       this.loadRankings()
     })

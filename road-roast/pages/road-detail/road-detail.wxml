@@ -34,4 +34,31 @@
   <view class="bottom-bar">
     <button class="post-btn" bindtap="onPostTicket">给这条路贴罚单</button>
   </view>
+
+  <!-- 贴罚单面板 -->
+  <ticket-panel
+    wx:if="{{showPanel}}"
+    road="{{road}}"
+    posting="{{posting}}"
+    bind:post="onPostTicketSubmit"
+    bind:close="onClosePanel"
+  />
+
+  <!-- 成功弹窗 -->
+  <view class="result-overlay" wx:if="{{showResult}}" bindtap="onCloseResult">
+    <view class="result-panel" catchtap="">
+      <view class="r-stamp {{resultAnim ? 'r-stamp-pop' : ''}}">
+        <text class="r-stamp-text">罚</text>
+      </view>
+      <view class="r-title">罚单已贴出！</view>
+      <view class="r-road">{{ticketResult.roadName}}</view>
+      <view class="r-count">
+        累计 <text class="r-count-num">{{ticketResult.totalTickets}}</text> 张罚单
+      </view>
+      <view class="r-btns" catchtap="">
+        <button class="r-btn chat" open-type="share">💬 发给朋友</button>
+      </view>
+      <view class="r-close" bindtap="onCloseResult">继续查看</view>
+    </view>
+  </view>
 </view>

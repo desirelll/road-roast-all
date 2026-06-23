@@ -10,7 +10,8 @@ Component({
   },
 
   data: {
-    imageUrl: ''
+    imageUrl: '',
+    drawing: false
   },
 
   observers: {
@@ -23,6 +24,7 @@ Component({
 
   methods: {
     async drawShareImage() {
+      this.setData({ drawing: true, imageUrl: '' })
       const { roadName, ticketCount, cityName, roadId } = this.properties
 
       // 1. 获取小程序码
@@ -39,7 +41,10 @@ Component({
       query.select('#shareCanvas')
         .fields({ node: true, size: true })
         .exec(async (res) => {
-          if (!res || !res[0] || !res[0].node) return
+          if (!res || !res[0] || !res[0].node) {
+            this.setData({ drawing: false })
+            return
+          }
 
           const canvas = res[0].node
           const ctx = canvas.getContext('2d')
@@ -131,9 +136,10 @@ Component({
             fileType: 'jpg',
             quality: 0.9,
             success: (res) => {
-              this.setData({ imageUrl: res.tempFilePath })
+              this.setData({ imageUrl: res.tempFilePath, drawing: false })
             },
             fail: () => {
+              this.setData({ drawing: false })
               wx.showToast({ title: '图片生成失败', icon: 'none' })
             }
           }, this)

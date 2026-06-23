@@ -1,7 +1,11 @@
 <view class="share-canvas" wx:if="{{show}}" bindtap="onClose">
   <view class="canvas-wrapper" catchtap="">
-    <canvas type="2d" id="shareCanvas" class="canvas" />
-    <view class="save-btn" bindtap="saveToAlbum">保存到相册发朋友圈</view>
+    <view class="loading-hint" wx:if="{{drawing}}">
+      <text class="loading-spinner">⏳</text>
+      <text class="loading-text">正在生成分享图...</text>
+    </view>
+    <canvas type="2d" id="shareCanvas" class="canvas" wx:if="{{!drawing || imageUrl}}" />
+    <view class="save-btn" wx:if="{{imageUrl}}" bindtap="saveToAlbum">保存到相册发朋友圈</view>
     <view class="close-hint" bindtap="onClose">点击背景关闭</view>
   </view>
 </view>

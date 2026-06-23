@@ -1,13 +1,27 @@
 /**
  * 云函数调用封装
- * 统一处理错误、loading 等通用逻辑
+ * 统一处理错误、loading、超时等通用逻辑
  */
 
+const REQUEST_TIMEOUT = 15000 // 15 秒超时
+
+// loading 引用计数，解决并发调用时 hideLoading 提前关闭的问题
+let loadingCount = 0
+
 const showLoading = (title = '加载中...') => {
+  loadingCount++
   wx.showLoading({ title, mask: true })
 }
 
 const hideLoading = () => {
+  loadingCount = Math.max(0, loadingCount - 1)
+  if (loadingCount === 0) {
+    wx.hideLoading()
+  }
+}
+
+const forceHideLoading = () => {
+  loadingCount = 0
   wx.hideLoading()
 }
 
@@ -21,29 +35,37 @@ const hideLoading = () => {
  * @returns {Promise<{code: number, data: any, message: string}>}
  */
 function callFunction(name, data = {}, options = {}) {
-  const { loading = true, loadingTitle } = options
+  const { loading = false, loadingTitle } = options
 
   if (loading) {
     showLoading(loadingTitle)
   }
 
-  return wx.cloud
-    .callFunction({ name, data })
-    .then((res) => {
-      hideLoading()
-      const { result } = res
-      if (result.code !== 0) {
-        wx.showToast({ title: result.message || '请求失败', icon: 'none' })
-        return Promise.reject(result)
-      }
-      return result
+  // 超时控制
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => {
+      reject({ errMsg: '请求超时，请重试' })
+    }, REQUEST_TIMEOUT)
+  })
+
+  const requestPromise = wx.cloud.callFunction({ name, data }).then((res) => {
+    const { result } = res
+    if (result.code !== 0) {
+      wx.showToast({ title: result.message || '请求失败', icon: 'none' })
+      return Promise.reject(result)
+    }
+    return result
+  })
+
+  return Promise.race([requestPromise, timeoutPromise])
+    .finally(() => {
+      if (loading) hideLoading()
     })
     .catch((err) => {
-      hideLoading()
       const msg = err.errMsg || err.message || '网络异常，请重试'
       wx.showToast({ title: msg, icon: 'none' })
       return Promise.reject(err)
     })
 }
 
-module.exports = { callFunction }
+module.exports = { callFunction, forceHideLoading }
