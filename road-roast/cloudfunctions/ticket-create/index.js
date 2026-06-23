@@ -56,26 +56,20 @@ exports.main = async (event, context) => {
     }
   }
 
-  // 2. 内容安全检测（在 DailyLimit 之前，失败不会产生脏数据）
-  if (comment) {
-    try {
-      await cloud.openapi.security.msgSecCheck({ content: comment })
-    } catch (e) {
-      return { code: -3, message: '内容包含敏感词，请修改' }
-    }
-  }
-
-  // 3. 获取用户信息（冗余存储用）
+  // 2. 内容安全检测 + 获取用户信息（并行执行）
   let nickname = ''
   let avatar = ''
   try {
-    const userRes = await db.collection('User').where({ openid }).get()
+    const [, userRes] = await Promise.all([
+      comment ? cloud.openapi.security.msgSecCheck({ content: comment }) : Promise.resolve(),
+      db.collection('User').where({ openid }).get().catch(() => ({ data: [] }))
+    ])
     if (userRes.data.length > 0) {
       nickname = userRes.data[0].nickname || ''
       avatar = userRes.data[0].avatar || ''
     }
   } catch (e) {
-    // 用户记录可能不存在，非致命错误
+    return { code: -3, message: '内容包含敏感词，请修改' }
   }
 
   // 4. 利用 DailyLimit._id 唯一性做每日限制（放在安全检测之后，避免检测失败留下脏数据）

@@ -55,10 +55,12 @@ async function totalRanking(scope, city, skip, limit) {
   }
 }
 
-// 周期榜：普通查询 + JS 分组（避开聚合管道日期比较的坑）
+// 周期榜：聚合管道在数据库层完成分组计数，无 500 条限制
 async function periodRanking(scope, period, city, skip, limit) {
-  let startTime
+  const $ = db.command.aggregate
+  const _ = db.command
 
+  let startTime
   if (period === 'week') {
     const d = new Date()
     const dayOfWeek = d.getDay() || 7
@@ -69,69 +71,57 @@ async function periodRanking(scope, period, city, skip, limit) {
     startTime = new Date(new Date().getFullYear(), 0, 1)
   }
 
-  // 1. 用普通 where 查时间范围内的 Ticket，拿满 500 条做统计
-  const ticketRes = await db.collection('Ticket')
-    .where({ createdAt: db.command.gte(startTime) })
-    .field({ roadId: true })
-    .limit(500)
-    .get()
+  // 聚合管道：match → group → sort → skip → limit → lookup
+  const pipeline = [
+    { $match: { createdAt: _.gte(startTime) } },
+    { $group: { _id: '$roadId', count: $.sum(1) } },
+    { $sort: { count: -1 } }
+  ]
 
-  if (ticketRes.data.length === 0) {
-    return { code: 0, data: { list: [], hasMore: false }, message: 'ok' }
-  }
+  // 先查总数用于分页
+  const countRes = await db.collection('Ticket')
+    .aggregate()
+    .match({ createdAt: _.gte(startTime) })
+    .group({ _id: '$roadId', count: $.sum(1) })
+    .end()
+  const totalCount = countRes.list.length
 
-  // 2. JS 分组计数
-  const countMap = new Map()
-  ticketRes.data.forEach((t) => {
-    countMap.set(t.roadId, (countMap.get(t.roadId) || 0) + 1)
+  // 分页查询
+  pipeline.push({ $skip: skip })
+  pipeline.push({ $limit: limit })
+
+  // 关联 Road 表获取路段信息
+  pipeline.push({
+    $lookup: {
+      from: 'Road',
+      localField: '_id',
+      foreignField: '_id',
+      as: 'road'
+    }
   })
+  pipeline.push({ $unwind: { path: '$road', preserveNullAndEmptyArrays: false } })
 
-  // 3. 按票数降序排列
-  const sorted = [...countMap.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([roadId, count]) => ({ roadId, count }))
-
-  // 4. 批量查 Road 信息
-  if (sorted.length === 0) {
-    return { code: 0, data: { list: [], hasMore: false }, message: 'ok' }
-  }
-
-  const roadIds = sorted.map((s) => s.roadId)
-  const roadRes = await db.collection('Road')
-    .where({ _id: db.command.in(roadIds) })
-    .get()
-
-  const roadMap = new Map()
-  roadRes.data.forEach((r) => {
-    roadMap.set(r._id, r)
-  })
-
-  // 5. 组装结果，城市过滤
-  let result = sorted
-    .map((s) => {
-      const road = roadMap.get(s.roadId)
-      return {
-        roadId: s.roadId,
-        name: road ? road.name : '',
-        fullName: road ? road.fullName : '',
-        city: road ? road.city || '' : '',
-        province: road ? road.province || '' : '',
-        totalTickets: s.count
-      }
-    })
-    .filter((item) => item.name !== '') // 过滤掉已删除的路段
-
+  // 城市过滤（聚合管道内过滤，避免拉到应用层再过滤）
   if (scope === 'city' && city) {
-    result = result.filter((item) => item.city === city)
+    pipeline.push({ $match: { 'road.city': city } })
   }
 
-  // 6. 分页
-  const paged = result.slice(skip, skip + limit)
+  const res = await db.collection('Ticket').aggregate(pipeline).end()
+
+  const list = res.list.map((item) => ({
+    roadId: item._id,
+    name: item.road.name,
+    fullName: item.road.fullName || '',
+    city: item.road.city || '',
+    province: item.road.province || '',
+    totalTickets: item.count
+  }))
+
   return {
     code: 0,
     data: {
-      list: paged,
-      hasMore: skip + limit < result.length
+      list,
+      hasMore: skip + limit < totalCount
     },
     message: 'ok'
   }
