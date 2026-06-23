@@ -56,7 +56,29 @@ exports.main = async (event, context) => {
     }
   }
 
-  // 2. 利用 DailyLimit._id 唯一性做每日限制（先插 DailyLimit 防止竞态）
+  // 2. 内容安全检测（在 DailyLimit 之前，失败不会产生脏数据）
+  if (comment) {
+    try {
+      await cloud.openapi.security.msgSecCheck({ content: comment })
+    } catch (e) {
+      return { code: -3, message: '内容包含敏感词，请修改' }
+    }
+  }
+
+  // 3. 获取用户信息（冗余存储用）
+  let nickname = ''
+  let avatar = ''
+  try {
+    const userRes = await db.collection('User').where({ openid }).get()
+    if (userRes.data.length > 0) {
+      nickname = userRes.data[0].nickname || ''
+      avatar = userRes.data[0].avatar || ''
+    }
+  } catch (e) {
+    // 用户记录可能不存在，非致命错误
+  }
+
+  // 4. 利用 DailyLimit._id 唯一性做每日限制（放在安全检测之后，避免检测失败留下脏数据）
   const limitId = `${openid}_${finalRoadId}_${today}`
   try {
     await db.collection('DailyLimit').add({
@@ -72,29 +94,7 @@ exports.main = async (event, context) => {
     return { code: -2, message: '今天已经给这条路贴过罚单了' }
   }
 
-  // 3. 内容安全检测
-  if (comment) {
-    try {
-      await cloud.openapi.security.msgSecCheck({ content: comment })
-    } catch (e) {
-      return { code: -3, message: '内容包含敏感词，请修改' }
-    }
-  }
-
-  // 4. 获取用户信息（冗余存储用）
-  let nickname = ''
-  let avatar = ''
-  try {
-    const userRes = await db.collection('User').where({ openid }).get()
-    if (userRes.data.length > 0) {
-      nickname = userRes.data[0].nickname || ''
-      avatar = userRes.data[0].avatar || ''
-    }
-  } catch (e) {
-    // 用户记录可能不存在，非致命错误
-  }
-
-  // 5. 创建 Ticket + 更新 Road
+  // 5. 创建 Ticket + 更新 Road.totalTickets + 更新 User.totalTickets
   try {
     const ticketRes = await db.collection('Ticket').add({
       data: {
@@ -107,12 +107,17 @@ exports.main = async (event, context) => {
       }
     })
 
-    await db.collection('Road').doc(finalRoadId).update({
-      data: {
-        totalTickets: db.command.inc(1)
-      }
-    })
+    // 并行更新 Road 和 User 的罚单计数
+    await Promise.all([
+      db.collection('Road').doc(finalRoadId).update({
+        data: { totalTickets: db.command.inc(1) }
+      }),
+      db.collection('User').where({ openid }).update({
+        data: { totalTickets: db.command.inc(1) }
+      })
+    ])
 
+    // 查询更新后的 Road 信息（inc 是原子操作，此时已是最新的）
     const roadRes = await db.collection('Road').doc(finalRoadId).get()
     const road = roadRes.data
 

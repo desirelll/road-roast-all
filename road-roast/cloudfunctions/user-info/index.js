@@ -55,18 +55,13 @@ async function getUserInfo(openid) {
 
   const user = userRes.data[0]
 
-  // 统计最新罚单数
-  const countRes = await db.collection('Ticket')
-    .where({ userId: openid })
-    .count()
-
   return {
     code: 0,
     data: {
       openid: user.openid,
       nickname: user.nickname || '',
       avatar: user.avatar || '',
-      totalTickets: countRes.total
+      totalTickets: user.totalTickets || 0
     },
     message: 'ok'
   }
