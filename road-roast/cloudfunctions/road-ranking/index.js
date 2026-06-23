@@ -4,6 +4,12 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
 exports.main = async (event, context) => {
+  const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
+  if (!openid) {
+    return { code: -1, message: '未授权' }
+  }
+
   const { scope = 'national', period = 'all', city, page = 1, pageSize = 20 } = event
 
   const skip = (page - 1) * pageSize

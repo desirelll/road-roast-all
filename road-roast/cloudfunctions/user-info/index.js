@@ -81,6 +81,15 @@ async function updateUserInfo(openid, nickname, avatar) {
     return { code: -1, message: '无更新内容' }
   }
 
+  // 昵称内容安全检测
+  if (nickname !== undefined && nickname.trim()) {
+    try {
+      await cloud.openapi.security.msgSecCheck({ content: nickname })
+    } catch (secErr) {
+      return { code: -1, message: '昵称含违规内容，请修改' }
+    }
+  }
+
   // 确保用户记录存在
   const userRes = await db.collection('User').where({ openid }).get()
   if (userRes.data.length === 0) {

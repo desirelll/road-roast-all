@@ -16,27 +16,21 @@ Page({
     this.loadRankings()
   },
 
-  getUserCity() {
-    wx.getLocation({
-      type: 'gcj02',
-      success: (res) => {
-        // 通过坐标获取城市名
-        wx.request({
-          url: 'https://apis.map.qq.com/ws/geocoder/v1/',
-          data: {
-            location: `${res.latitude},${res.longitude}`,
-            key: 'IEABZ-35CCW-DOMR7-3SOW2-YUWDH-DVBIS',
-            get_poi: 0
-          },
-          success: (apiRes) => {
-            if (apiRes.data.status === 0) {
-              const city = apiRes.data.result.address_component.city
-              this.setData({ city: city.replace('市', '') })
-            }
-          }
-        })
+  async getUserCity() {
+    try {
+      const locRes = await new Promise((resolve, reject) => {
+        wx.getLocation({ type: 'gcj02', success: resolve, fail: reject })
+      })
+      const res = await callFunction('geocoder', {
+        lat: locRes.latitude,
+        lng: locRes.longitude
+      }, { loading: false })
+      if (res.code === 0 && res.data?.city) {
+        this.setData({ city: res.data.city.replace('市', '') })
       }
-    })
+    } catch (e) {
+      // 定位失败或逆编码失败，city 保持空字符串
+    }
   },
 
   onPullDownRefresh() {

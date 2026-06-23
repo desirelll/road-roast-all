@@ -3,10 +3,16 @@ const crypto = require('crypto')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
-const TENCENT_MAP_KEY = 'IEABZ-35CCW-DOMR7-3SOW2-YUWDH-DVBIS'
-const TENCENT_MAP_SK = 'kpWoRdBZq5GwihV4M1SA7qYsbM8qdfaT'
+const TENCENT_MAP_KEY = process.env.TENCENT_MAP_KEY
+const TENCENT_MAP_SK = process.env.TENCENT_MAP_SK
 
 exports.main = async (event, context) => {
+  const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
+  if (!openid) {
+    return { code: -1, message: '未授权' }
+  }
+
   const { lat, lng } = event
 
   if (!lat || !lng) {

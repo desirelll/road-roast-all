@@ -3,6 +3,12 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 exports.main = async (event, context) => {
+  const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
+  if (!openid) {
+    return { code: -1, message: '未授权' }
+  }
+
   const { roadId } = event
 
   if (!roadId) {
