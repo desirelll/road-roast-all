@@ -50,9 +50,9 @@ function callFunction(name, data = {}, options = {}) {
 
   const requestPromise = wx.cloud.callFunction({ name, data }).then((res) => {
     const { result } = res
-    if (result.code !== 0) {
-      wx.showToast({ title: result.message || '请求失败', icon: 'none' })
-      return Promise.reject(result)
+    if (!result || result.code !== 0) {
+      wx.showToast({ title: result?.message || '请求失败', icon: 'none' })
+      return Promise.reject(result || { errMsg: '云函数返回为空' })
     }
     return result
   })

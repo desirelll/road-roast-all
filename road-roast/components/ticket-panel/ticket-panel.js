@@ -36,7 +36,7 @@ Component({
 
     onPost() {
       if (this.data.posting) return
-      const { comment } = this.data
+      const comment = this.data.comment.trim()
       if (comment.length > 50) {
         wx.showToast({ title: '最多50个字', icon: 'none' })
         return
@@ -54,6 +54,22 @@ Component({
         return
       }
       this.triggerEvent('close')
+    },
+
+    onClose() {
+      this.triggerEvent('close')
+    },
+
+    onShareTimeline() {
+      this.triggerEvent('shareTimeline')
+    },
+
+    onTextareaFocus() {
+      // 输入框聚焦时的处理（预留）
+    },
+
+    onTextareaBlur() {
+      // 输入框失焦时的处理（预留）
     }
   }
 })

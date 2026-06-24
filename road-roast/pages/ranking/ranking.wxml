@@ -97,7 +97,7 @@
   </view>
 
   <!-- 空状态 -->
-  <view class="empty-state" wx:elif="{{!loading}}">
+  <view class="empty-state" wx:if="{{!loading && ((tabType === 'road' && rankings.length === 0) || (tabType === 'user' && userRankings.length === 0))}}">
     <text class="empty-text">还没有数据，快去贴罚单吧</text>
     <navigator url="/pages/index/index" class="empty-btn">去贴罚单</navigator>
   </view>

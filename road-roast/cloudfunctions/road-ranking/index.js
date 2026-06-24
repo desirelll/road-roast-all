@@ -69,44 +69,43 @@ async function periodRanking(scope, period, city, skip, limit) {
     startTime = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   } else if (period === 'year') {
     startTime = new Date(new Date().getFullYear(), 0, 1)
+  } else {
+    return { code: -1, message: '无效的周期参数' }
   }
 
-  // 聚合管道：match → group → sort → skip → limit → lookup
-  const pipeline = [
-    { $match: { createdAt: _.gte(startTime) } },
-    { $group: { _id: '$roadId', count: $.sum(1) } },
-    { $sort: { count: -1 } }
-  ]
+  // 构建基础聚合管道（match → group → sort → lookup → 城市过滤）
+  const buildPipeline = (withPaging) => {
+    const p = [
+      { $match: { createdAt: _.gte(startTime) } },
+      { $group: { _id: '$roadId', count: $.sum(1) } },
+      { $sort: { count: -1 } }
+    ]
+    // 先 lookup + 城市过滤，再 skip/limit
+    p.push({
+      $lookup: {
+        from: 'Road',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'road'
+      }
+    })
+    p.push({ $unwind: { path: '$road', preserveNullAndEmptyArrays: false } })
+    if (scope === 'city' && city) {
+      p.push({ $match: { 'road.city': city } })
+    }
+    if (withPaging) {
+      p.push({ $skip: skip })
+      p.push({ $limit: limit })
+    }
+    return p
+  }
 
-  // 先查总数用于分页
-  const countRes = await db.collection('Ticket')
-    .aggregate()
-    .match({ createdAt: _.gte(startTime) })
-    .group({ _id: '$roadId', count: $.sum(1) })
-    .end()
+  // 查总数（应用相同的城市过滤）
+  const countRes = await db.collection('Ticket').aggregate(buildPipeline(false)).end()
   const totalCount = countRes.list.length
 
   // 分页查询
-  pipeline.push({ $skip: skip })
-  pipeline.push({ $limit: limit })
-
-  // 关联 Road 表获取路段信息
-  pipeline.push({
-    $lookup: {
-      from: 'Road',
-      localField: '_id',
-      foreignField: '_id',
-      as: 'road'
-    }
-  })
-  pipeline.push({ $unwind: { path: '$road', preserveNullAndEmptyArrays: false } })
-
-  // 城市过滤（聚合管道内过滤，避免拉到应用层再过滤）
-  if (scope === 'city' && city) {
-    pipeline.push({ $match: { 'road.city': city } })
-  }
-
-  const res = await db.collection('Ticket').aggregate(pipeline).end()
+  const res = await db.collection('Ticket').aggregate(buildPipeline(true)).end()
 
   const list = res.list.map((item) => ({
     roadId: item._id,

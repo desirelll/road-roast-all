@@ -128,6 +128,26 @@
 - `pages/ranking/ranking.wxml` — 用户排行 UI
 - `pages/ranking/ranking.wxss` — 用户排行样式
 
+### 2026-06-23 — P0 Bug 修复
+
+**改动**
+- ranking.js: onPullDownRefresh 三元表达式改为 if/else，修复用户榜下拉崩溃
+- cloud.js: result 为 null 时增加防御，修复云函数返回异常崩溃
+- ranking.wxml: 空状态改为独立 wx:if，修复路段排行空状态不显示
+- ticket-panel.js: 补充缺失的 onShareTimeline/onClose/onTextareaFocus/onTextareaBlur
+- road-ranking: 周期榜城市过滤移到 skip/limit 之前，totalCount 应用相同过滤
+- ticket-create: User update 改为 set，确保记录不存在时也能创建
+- user-info: getUserInfo 竞态安全，duplicate 时重新查询
+
+**涉及文件**
+- `pages/ranking/ranking.js` — onPullDownRefresh 修复
+- `pages/ranking/ranking.wxml` — 空状态条件修复
+- `utils/cloud.js` — result null 防御
+- `components/ticket-panel/ticket-panel.js` — 补充缺失方法
+- `cloudfunctions/ticket-create/index.js` — User set 修复
+- `cloudfunctions/road-ranking/index.js` — 聚合管道顺序修复
+- `cloudfunctions/user-info/index.js` — 竞态安全修复
+
 ---
 
 ## 中期（上线后迭代）

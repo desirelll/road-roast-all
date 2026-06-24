@@ -102,12 +102,17 @@ exports.main = async (event, context) => {
     })
 
     // 并行更新 Road 和 User 的罚单计数
+    // User 使用 set 确保记录不存在时也能创建
     await Promise.all([
       db.collection('Road').doc(finalRoadId).update({
         data: { totalTickets: db.command.inc(1) }
       }),
-      db.collection('User').where({ openid }).update({
-        data: { totalTickets: db.command.inc(1) }
+      db.collection('User').where({ openid }).set({
+        data: {
+          openid,
+          totalTickets: db.command.inc(1),
+          createdAt: db.serverDate()
+        }
       })
     ])
 

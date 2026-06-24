@@ -37,9 +37,13 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.setData({ page: 1, rankings: [], userRankings: [] }, () => {
-      const loadFn = this.data.tabType === 'road' ? this.loadRankings() : this.loadUserRankings()
-      loadFn.then(() => wx.stopPullDownRefresh())
+    this.setData({ page: 1, rankings: [], userRankings: [], loading: false }, async () => {
+      if (this.data.tabType === 'road') {
+        await this.loadRankings()
+      } else {
+        await this.loadUserRankings()
+      }
+      wx.stopPullDownRefresh()
     })
   },
 

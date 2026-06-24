@@ -28,28 +28,26 @@ exports.main = async (event, context) => {
 }
 
 async function getUserInfo(openid) {
-  const userRes = await db.collection('User').where({ openid }).get()
+  let userRes = await db.collection('User').where({ openid }).get()
 
   if (userRes.data.length === 0) {
-    // 首次：创建用户记录
-    await db.collection('User').add({
-      data: {
-        openid,
-        nickname: '',
-        avatar: '',
-        totalTickets: 0,
-        createdAt: db.serverDate()
-      }
-    })
-    return {
-      code: 0,
-      data: {
-        openid,
-        nickname: '',
-        avatar: '',
-        totalTickets: 0
-      },
-      message: 'ok'
+    // 首次：创建用户记录（竞态安全：duplicate 时重新查询）
+    try {
+      await db.collection('User').add({
+        data: {
+          openid,
+          nickname: '',
+          avatar: '',
+          totalTickets: 0,
+          createdAt: db.serverDate()
+        }
+      })
+    } catch (e) {
+      // 可能是并发创建导致的 duplicate，重新查询
+    }
+    userRes = await db.collection('User').where({ openid }).get()
+    if (userRes.data.length === 0) {
+      return { code: -1, message: '用户记录创建失败' }
     }
   }
 
