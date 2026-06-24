@@ -66,14 +66,14 @@ Page({
 
   onChooseAvatar(e) {
     const avatar = e.detail.avatarUrl
-    const userInfo = { ...this.data.userInfo, avatar }
+    const userInfo = { ...(this.data.userInfo || {}), avatar }
     this.setData({ userInfo })
     this.saveProfile(userInfo)
   },
 
   onNicknameChange(e) {
     const nickname = e.detail.value
-    const userInfo = { ...this.data.userInfo, nickname }
+    const userInfo = { ...(this.data.userInfo || {}), nickname }
     this.setData({ userInfo })
     this.saveProfile(userInfo)
   },
@@ -83,7 +83,7 @@ Page({
       action: 'update',
       nickname: userInfo.nickname || '',
       avatar: userInfo.avatar || ''
-    }, { loading: false })
+    }, { loading: false }).catch(() => {})
   },
 
   onTicketTap(e) {

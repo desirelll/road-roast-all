@@ -139,6 +139,13 @@ async function searchTencentPOI(keyword) {
 }
 
 /**
+ * 正则转义，防止 ReDoS
+ */
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
  * 查本地 Road 表，模糊匹配路段名
  */
 async function searchLocalRoads(keyword) {
@@ -146,7 +153,7 @@ async function searchLocalRoads(keyword) {
     const res = await db.collection('Road')
       .where({
         name: db.RegExp({
-          regexp: keyword,
+          regexp: escapeRegExp(keyword),
           options: 'i'
         })
       })

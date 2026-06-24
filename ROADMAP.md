@@ -148,6 +148,28 @@
 - `cloudfunctions/road-ranking/index.js` — 聚合管道顺序修复
 - `cloudfunctions/user-info/index.js` — 竞态安全修复
 
+### 2026-06-23 — P1/P2 Bug 修复
+
+**改动**
+- cloud.js: 超时定时器清理，避免内存泄漏
+- index.js: 授权轮询增加最大重试次数（10秒超时）、onUnload 清理搜索 timer
+- profile.js: userInfo 为 null 时防御、saveProfile 增加 .catch
+- ranking.js: 快速切换 scope/period 时重置 loading
+- road-detail.js: roadId 缺失时 1.5 秒后自动返回
+- geocoder: lat/lng 参数校验增强、address_component 空值防御、删除调试日志
+- road-search: RegExp 正则转义防止 ReDoS
+- ticket-create: comment 校验增加类型检查和 trim
+
+**涉及文件**
+- `utils/cloud.js` — 定时器清理
+- `pages/index/index.js` — 授权轮询、onUnload
+- `pages/profile/profile.js` — null 防御、catch
+- `pages/ranking/ranking.js` — loading 重置
+- `pages/road-detail/road-detail.js` — 自动返回
+- `cloudfunctions/geocoder/index.js` — 参数校验、空值防御、日志清理
+- `cloudfunctions/road-search/index.js` — 正则转义
+- `cloudfunctions/ticket-create/index.js` — comment 校验
+
 ---
 
 ## 中期（上线后迭代）

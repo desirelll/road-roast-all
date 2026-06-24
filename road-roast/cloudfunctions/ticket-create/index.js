@@ -17,7 +17,7 @@ exports.main = async (event, context) => {
     return { code: -1, message: '路段信息不完整' }
   }
 
-  if (comment && comment.length > 50) {
+  if (comment && (typeof comment !== 'string' || comment.trim().length > 50)) {
     return { code: -1, message: '吐槽最多50个字' }
   }
 

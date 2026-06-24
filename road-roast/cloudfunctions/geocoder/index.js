@@ -15,8 +15,10 @@ exports.main = async (event, context) => {
 
   const { lat, lng } = event
 
-  if (!lat || !lng) {
-    return { code: -1, message: '缺少经纬度参数' }
+  const latNum = parseFloat(lat)
+  const lngNum = parseFloat(lng)
+  if (isNaN(latNum) || isNaN(lngNum) || latNum < -90 || latNum > 90 || lngNum < -180 || lngNum > 180) {
+    return { code: -1, message: '经纬度参数无效' }
   }
 
   try {
@@ -43,25 +45,16 @@ exports.main = async (event, context) => {
     if (data.status === 0) {
       const addr = data.result
       const pois = addr.pois || []
-
-      // 调试：打印 POI 信息，确认 category 格式
-      console.log('=== geocoder debug ===')
-      console.log('address:', addr.address)
-      console.log('recommend:', addr.formatted_addresses?.recommend)
-      console.log('road info:', JSON.stringify(addr.road))
-      pois.slice(0, 5).forEach((p, i) => {
-        console.log(`poi[${i}]: title=${p.title}, category=${p.category}, distance=${p._distance}`)
-      })
-
       const roadName = pickRoadName(pois, addr)
 
+      const component = addr.address_component || {}
       return {
         code: 0,
         data: {
           name: roadName,
-          address: addr.address,
-          province: addr.address_component.province,
-          city: addr.address_component.city,
+          address: addr.address || '',
+          province: component.province || '',
+          city: component.city || '',
           lat,
           lng
         }

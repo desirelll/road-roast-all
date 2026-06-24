@@ -42,8 +42,9 @@ function callFunction(name, data = {}, options = {}) {
   }
 
   // 超时控制
+  let timer
   const timeoutPromise = new Promise((_, reject) => {
-    setTimeout(() => {
+    timer = setTimeout(() => {
       reject({ errMsg: '请求超时，请重试' })
     }, REQUEST_TIMEOUT)
   })
@@ -59,6 +60,7 @@ function callFunction(name, data = {}, options = {}) {
 
   return Promise.race([requestPromise, timeoutPromise])
     .finally(() => {
+      clearTimeout(timer)
       if (loading) hideLoading()
     })
     .catch((err) => {

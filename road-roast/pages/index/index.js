@@ -33,22 +33,29 @@ Page({
     this.loadHotMarkers()
   },
 
+  onUnload() {
+    if (this._searchTimer) clearTimeout(this._searchTimer)
+  },
+
   // ========== 授权 ==========
   checkAuthState() {
     const app = getApp()
     if (app.globalData.isAuthorized) {
       this.setData({ isAuthorized: true })
-    } else {
-      // 等待 app.js 的 checkAuth 完成
-      const check = () => {
-        if (app.globalData.isAuthorized) {
-          this.setData({ isAuthorized: true })
-        } else if (!app.globalData._authChecked) {
-          setTimeout(check, 200)
-        }
-      }
-      setTimeout(check, 500)
+      return
     }
+    // 等待 app.js 的 checkAuth 完成，最多等 10 秒
+    let retries = 0
+    const maxRetries = 50
+    const check = () => {
+      if (app.globalData.isAuthorized) {
+        this.setData({ isAuthorized: true })
+      } else if (!app.globalData._authChecked && retries < maxRetries) {
+        retries++
+        setTimeout(check, 200)
+      }
+    }
+    setTimeout(check, 500)
   },
 
   onChooseAvatar(e) {

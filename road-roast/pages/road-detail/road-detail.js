@@ -19,6 +19,7 @@ Page({
     const { roadId } = options
     if (!roadId) {
       wx.showToast({ title: '路段不存在', icon: 'none' })
+      setTimeout(() => wx.navigateBack(), 1500)
       return
     }
     this.setData({ roadId })

@@ -112,7 +112,7 @@ Page({
       return
     }
 
-    this.setData({ scope, page: 1, rankings: [], hasMore: true }, () => {
+    this.setData({ scope, page: 1, rankings: [], hasMore: true, loading: false }, () => {
       this.loadRankings()
     })
   },
@@ -120,7 +120,7 @@ Page({
   onPeriodChange(e) {
     const period = e.currentTarget.dataset.period
     if (period === this.data.period) return
-    this.setData({ period, page: 1, rankings: [], hasMore: true }, () => {
+    this.setData({ period, page: 1, rankings: [], hasMore: true, loading: false }, () => {
       this.loadRankings()
     })
   },
