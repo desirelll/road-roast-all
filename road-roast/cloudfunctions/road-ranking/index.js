@@ -47,7 +47,8 @@ async function totalRanking(scope, city, skip, limit) {
         fullName: item.fullName,
         city: item.city || '',
         province: item.province || '',
-        totalTickets: item.totalTickets || 0
+        totalTickets: item.totalTickets || 0,
+        location: formatLocation(item.location)
       })),
       hasMore: res.data.length >= limit
     },
@@ -113,7 +114,8 @@ async function periodRanking(scope, period, city, skip, limit) {
     fullName: item.road.fullName || '',
     city: item.road.city || '',
     province: item.road.province || '',
-    totalTickets: item.count
+    totalTickets: item.count,
+    location: formatLocation(item.road.location)
   }))
 
   return {
@@ -124,4 +126,12 @@ async function periodRanking(scope, period, city, skip, limit) {
     },
     message: 'ok'
   }
+}
+
+function formatLocation(location) {
+  if (!location) return null
+  const lat = location.lat ?? location.latitude ?? location._latitude
+  const lng = location.lng ?? location.longitude ?? location._longitude
+  if (lat === undefined || lng === undefined) return null
+  return { lat, lng }
 }

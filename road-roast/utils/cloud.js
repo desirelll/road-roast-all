@@ -53,7 +53,7 @@ function callFunction(name, data = {}, options = {}) {
     const { result } = res
     if (!result || result.code !== 0) {
       wx.showToast({ title: result?.message || '请求失败', icon: 'none' })
-      return Promise.reject(result || { errMsg: '云函数返回为空' })
+      return Promise.reject({ ...(result || { errMsg: '云函数返回为空' }), _toastShown: true })
     }
     return result
   })
@@ -65,7 +65,9 @@ function callFunction(name, data = {}, options = {}) {
     })
     .catch((err) => {
       const msg = err.errMsg || err.message || '网络异常，请重试'
-      wx.showToast({ title: msg, icon: 'none' })
+      if (!err._toastShown) {
+        wx.showToast({ title: msg, icon: 'none' })
+      }
       return Promise.reject(err)
     })
 }

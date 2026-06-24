@@ -1,10 +1,53 @@
 # 路路辣评 (Road Roast) — 产品路线图
 
-> 最后更新：2026-06-23
+> 最后更新：2026-06-24
 
 ---
 
 ## 已完成
+
+### 2026-06-24 — 核心链路 bug 修复
+
+**改动**
+- 修复搜索已有路段时把腾讯 POI id 当 Road id 传给贴罚单云函数的问题
+- road-ranking 返回 location，首页热门路段和地图 marker 可正常消费排行榜数据
+- ticket-create 改为事务写入 DailyLimit、Ticket、Road.totalTickets、User.totalTickets，避免部分成功造成脏数据
+- User.totalTickets 更新改为增量 update，不再替换用户文档导致昵称头像丢失
+- 分享小程序码 scene 改为 `roadId=...`，路段详情页兼容扫码进入的 scene 参数
+- share-qrcode 使用上传后的 fileID 获取临时链接，避免 cloudPath 取 URL 失败
+- callFunction 业务错误只 toast 一次
+- 资料页禁止保存空昵称/空头像，并修复昵称防抖保存覆盖头像上传结果的竞态
+
+**涉及文件**
+- `cloudfunctions/road-search/index.js`
+- `cloudfunctions/road-ranking/index.js`
+- `cloudfunctions/ticket-create/index.js`
+- `cloudfunctions/share-qrcode/index.js`
+- `pages/index/index.js`
+- `pages/index/index.wxml`
+- `pages/road-detail/road-detail.js`
+- `pages/profile/profile.js`
+- `utils/cloud.js`
+- `tests/static-contracts.test.js`
+
+### 2026-06-24 — 授权体验优化
+
+**改动**
+- 首页头像昵称授权增加检查中状态，避免已授权用户短暂看到授权弹层
+- 首次进入不主动拉起定位授权，未授权时先展示默认地图，定位按钮再负责授权引导
+- 定位拒绝后从设置页返回会自动重试定位，失败时保留默认地图和搜索能力
+- 修复热门路段为空时误显示“无法获取定位”降级块的问题
+- 资料页头像先上传至云存储再保存，避免写入临时头像路径
+- 资料页昵称改为输入后防抖保存，保存失败会重新拉取服务端资料
+- 排行榜“我的城市”改为按需定位，失败时保留全国榜
+
+**涉及文件**
+- `utils/location-auth.js` — 新增定位权限判断 helper
+- `tests/location-auth.test.js` — 新增 helper 单元测试
+- `pages/index/` — 首页授权弹层、定位状态和设置引导
+- `tests/index-wxml.test.js` — 新增首页定位降级块回归测试
+- `pages/profile/` — 资料页头像上传、昵称保存状态
+- `pages/ranking/ranking.js` — 我的城市定位授权流程
 
 ### 2026-06-23 — 安全加固 + 功能修复 + 性能优化 + 体验优化
 

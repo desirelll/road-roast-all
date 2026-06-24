@@ -312,6 +312,22 @@
   color: #333;
 }
 
+.location-hint {
+  position: absolute;
+  left: 30rpx;
+  right: 118rpx;
+  bottom: 226rpx;
+  min-height: 60rpx;
+  padding: 0 22rpx;
+  border-radius: 30rpx;
+  background: rgba(255, 255, 255, 0.94);
+  color: #666;
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
 /* 定位降级 */
 .map-placeholder {
   flex: 1;
