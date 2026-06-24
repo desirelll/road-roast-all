@@ -97,6 +97,8 @@ Page({
         app.globalData.isAuthorized = true
         this.setData({ isAuthorized: true })
         wx.showToast({ title: '欢迎加入！', icon: 'success' })
+        // 授权完成后重新定位
+        this.getLocation()
       }
     } catch (e) {
       wx.showToast({ title: '授权失败，请重试', icon: 'none' })
