@@ -121,5 +121,13 @@ Page({
       title: road ? `${road.name}已累计${road.totalTickets}张罚单` : '路路辣评',
       path: `/pages/road-detail/road-detail?roadId=${this.data.roadId}`
     }
+  },
+
+  onShareTimeline() {
+    const { road } = this.data
+    return {
+      title: road ? `${road.name}已累计${road.totalTickets}张罚单` : '路路辣评',
+      query: `roadId=${this.data.roadId}`
+    }
   }
 })

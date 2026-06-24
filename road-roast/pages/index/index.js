@@ -361,6 +361,19 @@ Page({
     }
   },
 
+  onShareTimeline() {
+    const d = this._shareData
+    if (d) {
+      return {
+        title: d.title,
+        query: d.path ? d.path.split('?')[1] || '' : ''
+      }
+    }
+    return {
+      title: '路路辣评 - 给最堵心的路段贴罚单'
+    }
+  },
+
   onShowShareCanvas() {
     this.setData({ showShareCanvas: true })
   },

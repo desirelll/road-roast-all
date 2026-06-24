@@ -80,12 +80,21 @@
 - `pages/profile/profile.js` — safeNavigate
 - `utils/cloud.js` — safeNavigate 封装
 
+### 2026-06-23 — 朋友圈原生分享
+
+**改动**
+- 首页和路段详情页增加 `onShareTimeline` 生命周期，支持右上角菜单分享到朋友圈
+
+**涉及文件**
+- `pages/index/index.js`
+- `pages/road-detail/road-detail.js`
+
 ---
 
 ## 中期（上线后迭代）
 
 - [x] P2 UX 问题修复：首页骨架屏、时间格式化、Marker 点击交互、页面栈溢出防护
-- [ ] 朋友圈原生分享：增加 onShareTimeline
+- [x] 朋友圈原生分享：增加 onShareTimeline
 - [ ] 数据埋点：贴罚单数、搜索次数、分享次数
 - [ ] geocoder/road-search 公共模块抽取（签名函数、formatTime）
 
