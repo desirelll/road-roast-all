@@ -2,13 +2,16 @@ const { callFunction, safeNavigate } = require('../../utils/cloud')
 
 Page({
   data: {
+    tabType: 'road',
     scope: 'national',
     period: 'all',
     rankings: [],
+    userRankings: [],
     page: 1,
     hasMore: true,
     loading: false,
-    city: ''
+    city: '',
+    myRank: null
   },
 
   onLoad() {
@@ -34,15 +37,32 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.setData({ page: 1, rankings: [] }, () => {
-      this.loadRankings().then(() => wx.stopPullDownRefresh())
+    this.setData({ page: 1, rankings: [], userRankings: [] }, () => {
+      const loadFn = this.data.tabType === 'road' ? this.loadRankings() : this.loadUserRankings()
+      loadFn.then(() => wx.stopPullDownRefresh())
     })
   },
 
   onReachBottom() {
     if (this.data.hasMore && !this.data.loading) {
-      this.loadRankings()
+      if (this.data.tabType === 'road') {
+        this.loadRankings()
+      } else {
+        this.loadUserRankings()
+      }
     }
+  },
+
+  onTabChange(e) {
+    const tabType = e.currentTarget.dataset.tab
+    if (tabType === this.data.tabType) return
+    this.setData({ tabType, page: 1, rankings: [], userRankings: [], hasMore: true, myRank: null }, () => {
+      if (tabType === 'road') {
+        this.loadRankings()
+      } else {
+        this.loadUserRankings()
+      }
+    })
   },
 
   async loadRankings() {
@@ -99,6 +119,35 @@ Page({
     this.setData({ period, page: 1, rankings: [], hasMore: true }, () => {
       this.loadRankings()
     })
+  },
+
+  async loadUserRankings() {
+    if (this.data.loading) return
+    this.setData({ loading: true })
+
+    try {
+      const res = await callFunction('user-ranking', {
+        page: this.data.page,
+        pageSize: 20
+      }, { loading: false })
+
+      if (res.code === 0 && res.data) {
+        const list = this.data.page === 1
+          ? res.data.list
+          : [...this.data.userRankings, ...res.data.list]
+
+        this.setData({
+          userRankings: list,
+          hasMore: res.data.hasMore,
+          page: this.data.page + 1,
+          myRank: res.data.myRank
+        })
+      }
+    } catch (e) {
+      // 错误已在 callFunction 中提示
+    } finally {
+      this.setData({ loading: false })
+    }
   },
 
   onRoadTap(e) {

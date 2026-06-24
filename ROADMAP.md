@@ -114,6 +114,20 @@
 - `pages/index/index.wxml` — 卡片 UI
 - `pages/index/index.wxss` — 卡片样式
 
+### 2026-06-23 — 用户排行榜
+
+**改动**
+- 新增 user-ranking 云函数，按 User.totalTickets 排序
+- 排行榜页面增加"路段排行"和"达人排行" tab 切换
+- 用户排行展示：排名、头像、昵称、罚单数
+- 显示当前用户排名
+
+**涉及文件**
+- `cloudfunctions/user-ranking/` — 新增云函数
+- `pages/ranking/ranking.js` — tab 切换、loadUserRankings
+- `pages/ranking/ranking.wxml` — 用户排行 UI
+- `pages/ranking/ranking.wxss` — 用户排行样式
+
 ---
 
 ## 中期（上线后迭代）
@@ -123,6 +137,7 @@
 - [x] 数据埋点：贴罚单数、搜索次数、分享次数
 - [x] geocoder/road-search 公共模块抽取（签名函数、formatTime）— 暂不抽取，代码量小
 - [x] 附近路段推荐
+- [x] 用户排行榜
 
 ---
 

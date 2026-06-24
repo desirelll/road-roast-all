@@ -1,6 +1,24 @@
 <view class="container">
-  <!-- 范围切换 -->
-  <view class="filter-bar">
+  <!-- 类型切换 -->
+  <view class="type-tabs">
+    <view
+      class="type-tab {{tabType === 'road' ? 'active' : ''}}"
+      bindtap="onTabChange"
+      data-tab="road"
+    >
+      路段排行
+    </view>
+    <view
+      class="type-tab {{tabType === 'user' ? 'active' : ''}}"
+      bindtap="onTabChange"
+      data-tab="user"
+    >
+      达人排行
+    </view>
+  </view>
+
+  <!-- 路段排行筛选 -->
+  <view class="filter-bar" wx:if="{{tabType === 'road'}}">
     <view class="scope-tabs">
       <view
         class="scope-tab {{scope === 'national' ? 'active' : ''}}"
@@ -51,18 +69,30 @@
     </view>
   </view>
 
-  <!-- 排行榜列表 -->
-  <view class="ranking-list" wx:if="{{rankings.length > 0}}">
+  <!-- 我的排名（用户排行） -->
+  <view class="my-rank-bar" wx:if="{{tabType === 'user' && myRank}}">
+    <text>我的排名：第 {{myRank}} 名</text>
+  </view>
+
+  <!-- 路段排行列表 -->
+  <view class="ranking-list" wx:if="{{tabType === 'road' && rankings.length > 0}}">
     <view
       wx:for="{{rankings}}"
       wx:key="roadId"
       bindtap="onRoadTap"
       data-road-id="{{item.roadId}}"
     >
-      <road-item
-        rank="{{index + 1}}"
-        road="{{item}}"
-      />
+      <road-item rank="{{index + 1}}" road="{{item}}" />
+    </view>
+  </view>
+
+  <!-- 用户排行列表 -->
+  <view class="ranking-list" wx:if="{{tabType === 'user' && userRankings.length > 0}}">
+    <view class="user-rank-item" wx:for="{{userRankings}}" wx:key="rank">
+      <text class="user-rank-num {{item.rank <= 3 ? 'top3' : ''}}">{{item.rank}}</text>
+      <image class="user-rank-avatar" src="{{item.avatar || '/images/default-avatar.png'}}" mode="aspectFill" />
+      <text class="user-rank-name">{{item.nickname}}</text>
+      <text class="user-rank-count">{{item.totalTickets}} 张</text>
     </view>
   </view>
 
