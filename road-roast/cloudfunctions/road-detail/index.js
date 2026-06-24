@@ -69,6 +69,7 @@ exports.main = async (event, context) => {
 function formatTime(date) {
   if (!date) return ''
   const d = new Date(date)
+  if (isNaN(d.getTime())) return ''
   const now = new Date()
   const diff = now - d
 

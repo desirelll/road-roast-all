@@ -42,6 +42,16 @@
 - `utils/auth.js` — 新增 checkAuth()
 - `pages/index/` — 授权弹窗 UI + 逻辑
 
+### 2026-06-23 — 时间格式化
+
+**改动**
+- ticket-list 和 road-detail 的 formatTime 统一为相对时间格式（刚刚/X分钟前/X小时前/X天前/具体日期）
+- road-detail 的 formatTime 增加 isNaN 校验
+
+**涉及文件**
+- `cloudfunctions/ticket-list/index.js`
+- `cloudfunctions/road-detail/index.js`
+
 ---
 
 ## 近期（上线前）
@@ -49,6 +59,7 @@
 - [ ] 真机测试：完整流程验证
 - [ ] 边界场景测试：弱网、定位拒绝、连续操作、特殊字符
 - [ ] 确认 msgSecCheck 内容安全接口已开通
+- [ ] 生成 default-avatar.png 默认头像
 
 ---
 
