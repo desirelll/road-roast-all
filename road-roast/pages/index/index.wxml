@@ -95,6 +95,23 @@
     </view>
   </view>
 
+  <!-- 附近路段推荐 -->
+  <view class="nearby-section" wx:if="{{nearbyRoads.length > 0 && mapLoaded}}">
+    <view class="nearby-title">🔥 热门路段</view>
+    <scroll-view class="nearby-list" scroll-x>
+      <view
+        class="nearby-item"
+        wx:for="{{nearbyRoads}}"
+        wx:key="roadId"
+        bindtap="onNearbyTap"
+        data-road-id="{{item.roadId}}"
+      >
+        <text class="nearby-name">{{item.name}}</text>
+        <text class="nearby-count">{{item.totalTickets}} 罚单</text>
+      </view>
+    </scroll-view>
+  </view>
+
   <!-- 定位失败降级 -->
   <view class="map-placeholder" wx:else>
     <text class="map-placeholder-icon">📍</text>

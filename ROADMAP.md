@@ -103,6 +103,17 @@
 - `pages/index/index.js` — 搜索/贴罚单/分享埋点
 - `pages/road-detail/road-detail.js` — 贴罚单/分享埋点
 
+### 2026-06-23 — 附近路段推荐
+
+**改动**
+- 首页地图下方增加"热门路段"横向滚动卡片，展示前 5 个热门路段
+- 点击可跳转路段详情页
+
+**涉及文件**
+- `pages/index/index.js` — nearbyRoads 数据、点击事件
+- `pages/index/index.wxml` — 卡片 UI
+- `pages/index/index.wxss` — 卡片样式
+
 ---
 
 ## 中期（上线后迭代）
@@ -110,7 +121,8 @@
 - [x] P2 UX 问题修复：首页骨架屏、时间格式化、Marker 点击交互、页面栈溢出防护
 - [x] 朋友圈原生分享：增加 onShareTimeline
 - [x] 数据埋点：贴罚单数、搜索次数、分享次数
-- [ ] geocoder/road-search 公共模块抽取（签名函数、formatTime）
+- [x] geocoder/road-search 公共模块抽取（签名函数、formatTime）— 暂不抽取，代码量小
+- [x] 附近路段推荐
 
 ---
 

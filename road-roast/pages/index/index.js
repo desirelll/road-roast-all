@@ -18,6 +18,7 @@ Page({
     showShareCanvas: false,
     ticketCity: '',
     searching: false,
+    nearbyRoads: [],
     // 授权相关
     isAuthorized: false,
     tempAvatar: '',
@@ -151,7 +152,7 @@ Page({
           width: 28,
           height: 36
         }))
-        this.setData({ markers })
+        this.setData({ markers, nearbyRoads: roads.slice(0, 5) })
       }
     } catch (e) {
       // 热门路段加载失败不影响主流程
@@ -226,6 +227,12 @@ Page({
     const road = roads[markerId]
     if (!road || !road.roadId) return
     safeNavigate(`/pages/road-detail/road-detail?roadId=${road.roadId}`)
+  },
+
+  onNearbyTap(e) {
+    const roadId = e.currentTarget.dataset.roadId
+    if (!roadId) return
+    safeNavigate(`/pages/road-detail/road-detail?roadId=${roadId}`)
   },
 
   async reverseGeocode(lat, lng) {
