@@ -5,6 +5,102 @@
   position: relative;
 }
 
+/* ========== 授权弹窗 ========== */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-panel {
+  width: 85%;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 60rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.auth-desc {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 40rpx;
+}
+
+.auth-avatar-wrap {
+  margin-bottom: 30rpx;
+}
+
+.auth-avatar-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: normal;
+}
+
+.auth-avatar-btn::after {
+  display: none;
+}
+
+.auth-avatar {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  background: #f0f0f0;
+  margin-bottom: 12rpx;
+}
+
+.auth-avatar-hint {
+  font-size: 24rpx;
+  color: #e74c3c;
+}
+
+.auth-nickname-wrap {
+  width: 100%;
+  margin-bottom: 40rpx;
+}
+
+.auth-nickname-input {
+  width: 100%;
+  height: 80rpx;
+  background: #f5f5f5;
+  border-radius: 40rpx;
+  padding: 0 30rpx;
+  font-size: 28rpx;
+  text-align: center;
+}
+
+.auth-submit-btn {
+  width: 100%;
+  height: 88rpx;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 500;
+  border-radius: 44rpx;
+  border: none;
+}
+
+.auth-submit-btn[disabled] {
+  background: #ccc;
+  color: #999;
+}
+
 /* 搜索栏 */
 .search-bar {
   position: absolute;

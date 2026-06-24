@@ -1,4 +1,29 @@
 <view class="container">
+  <!-- 授权弹窗 -->
+  <view class="auth-overlay" wx:if="{{!isAuthorized}}">
+    <view class="auth-panel">
+      <view class="auth-title">欢迎使用路路辣评</view>
+      <view class="auth-desc">请设置你的头像和昵称</view>
+
+      <!-- 头像选择 -->
+      <view class="auth-avatar-wrap">
+        <button class="auth-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+          <image class="auth-avatar" src="{{tempAvatar || '/images/default-avatar.png'}}" mode="aspectFill" />
+          <text class="auth-avatar-hint">选择头像</text>
+        </button>
+      </view>
+
+      <!-- 昵称输入 -->
+      <view class="auth-nickname-wrap">
+        <input class="auth-nickname-input" type="nickname" placeholder="点击获取微信昵称" value="{{tempNickname}}" bindinput="onNicknameInput" />
+      </view>
+
+      <button class="auth-submit-btn" bindtap="onAuthSubmit" disabled="{{!tempAvatar || !tempNickname.trim()}}">
+        进入小程序
+      </button>
+    </view>
+  </view>
+
   <!-- 搜索栏 -->
   <view class="search-bar">
     <view class="search-icon">🔍</view>

@@ -16,11 +16,82 @@ Page({
     posting: false,
     showShareCanvas: false,
     ticketCity: '',
+    // 授权相关
+    isAuthorized: false,
+    tempAvatar: '',
+    tempNickname: '',
+    authSubmitting: false,
   },
 
   onLoad() {
+    this.checkAuthState()
     this.getLocation()
     this.loadHotMarkers()
+  },
+
+  // ========== 授权 ==========
+  checkAuthState() {
+    const app = getApp()
+    if (app.globalData.isAuthorized) {
+      this.setData({ isAuthorized: true })
+    } else {
+      // 等待 app.js 的 checkAuth 完成
+      const check = () => {
+        if (app.globalData.isAuthorized) {
+          this.setData({ isAuthorized: true })
+        } else if (!app.globalData._authChecked) {
+          setTimeout(check, 200)
+        }
+      }
+      setTimeout(check, 500)
+    }
+  },
+
+  onChooseAvatar(e) {
+    this.setData({ tempAvatar: e.detail.avatarUrl })
+  },
+
+  onNicknameInput(e) {
+    this.setData({ tempNickname: e.detail.value })
+  },
+
+  async onAuthSubmit() {
+    if (this.data.authSubmitting) return
+    const { tempAvatar, tempNickname } = this.data
+    if (!tempAvatar || !tempNickname.trim()) return
+
+    this.setData({ authSubmitting: true })
+
+    try {
+      // 上传头像到云存储
+      const uploadRes = await wx.cloud.uploadFile({
+        cloudPath: `avatar/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`,
+        filePath: tempAvatar
+      })
+
+      // 保存用户信息
+      const res = await callFunction('user-info', {
+        action: 'update',
+        nickname: tempNickname.trim(),
+        avatar: uploadRes.fileID
+      })
+
+      if (res.code === 0) {
+        const app = getApp()
+        app.globalData.userInfo = {
+          nickname: tempNickname.trim(),
+          avatar: uploadRes.fileID,
+          totalTickets: 0
+        }
+        app.globalData.isAuthorized = true
+        this.setData({ isAuthorized: true })
+        wx.showToast({ title: '欢迎加入！', icon: 'success' })
+      }
+    } catch (e) {
+      wx.showToast({ title: '授权失败，请重试', icon: 'none' })
+    } finally {
+      this.setData({ authSubmitting: false })
+    }
   },
 
   // ========== 定位 ==========
