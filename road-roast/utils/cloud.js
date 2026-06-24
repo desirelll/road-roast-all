@@ -81,4 +81,16 @@ function safeNavigate(url) {
   }
 }
 
-module.exports = { callFunction, forceHideLoading, safeNavigate }
+/**
+ * 数据埋点（异步，不阻塞主流程）
+ * @param {string} event - 事件名
+ * @param {object} data - 附加数据
+ */
+function trackEvent(event, data = {}) {
+  wx.cloud.callFunction({
+    name: 'analytics',
+    data: { event, data }
+  }).catch(() => {})
+}
+
+module.exports = { callFunction, forceHideLoading, safeNavigate, trackEvent }

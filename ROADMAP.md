@@ -89,13 +89,27 @@
 - `pages/index/index.js`
 - `pages/road-detail/road-detail.js`
 
+### 2026-06-23 — 数据埋点
+
+**改动**
+- 新增 analytics 云函数，写入 Analytics 集合
+- cloud.js 封装 trackEvent()，异步调用不阻塞主流程
+- 首页：搜索、贴罚单、分享事件埋点
+- 路段详情：贴罚单、分享事件埋点
+
+**涉及文件**
+- `cloudfunctions/analytics/` — 新增埋点云函数
+- `utils/cloud.js` — trackEvent 封装
+- `pages/index/index.js` — 搜索/贴罚单/分享埋点
+- `pages/road-detail/road-detail.js` — 贴罚单/分享埋点
+
 ---
 
 ## 中期（上线后迭代）
 
 - [x] P2 UX 问题修复：首页骨架屏、时间格式化、Marker 点击交互、页面栈溢出防护
 - [x] 朋友圈原生分享：增加 onShareTimeline
-- [ ] 数据埋点：贴罚单数、搜索次数、分享次数
+- [x] 数据埋点：贴罚单数、搜索次数、分享次数
 - [ ] geocoder/road-search 公共模块抽取（签名函数、formatTime）
 
 ---

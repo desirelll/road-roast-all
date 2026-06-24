@@ -1,4 +1,4 @@
-const { callFunction } = require('../../utils/cloud')
+const { callFunction, trackEvent } = require('../../utils/cloud')
 
 Page({
   data: {
@@ -99,6 +99,7 @@ Page({
         setTimeout(() => {
           this.setData({ resultAnim: true })
         }, 100)
+        trackEvent('ticket_create', { roadName: road.name, city: road.city })
         // 刷新评论列表
         this.setData({ page: 1, comments: [] }, () => {
           this.loadData()
@@ -116,6 +117,7 @@ Page({
   },
 
   onShareAppMessage() {
+    trackEvent('share', { type: 'friend', roadId: this.data.roadId })
     const { road } = this.data
     return {
       title: road ? `${road.name}已累计${road.totalTickets}张罚单` : '路路辣评',
@@ -124,6 +126,7 @@ Page({
   },
 
   onShareTimeline() {
+    trackEvent('share', { type: 'timeline', roadId: this.data.roadId })
     const { road } = this.data
     return {
       title: road ? `${road.name}已累计${road.totalTickets}张罚单` : '路路辣评',

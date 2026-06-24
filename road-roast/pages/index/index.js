@@ -1,4 +1,4 @@
-const { callFunction, safeNavigate } = require('../../utils/cloud')
+const { callFunction, safeNavigate, trackEvent } = require('../../utils/cloud')
 
 Page({
   data: {
@@ -190,6 +190,7 @@ Page({
       if (gen !== this._searchGen) return
       if (res.code === 0) {
         this.setData({ searchResults: res.data, searching: false })
+        trackEvent('search', { keyword, resultCount: res.data.length })
       }
     } catch (e) {
       if (gen !== this._searchGen) return
@@ -303,6 +304,7 @@ Page({
           this.setData({ resultAnim: true })
         }, 100)
         this.loadHotMarkers()
+        trackEvent('ticket_create', { roadName: road.name, city: road.city })
       }
       // 错误已在 callFunction 中 toast 提示
     } catch (e) {
@@ -348,6 +350,7 @@ Page({
 
   // ========== 分享 ==========
   onShareAppMessage() {
+    trackEvent('share', { type: 'friend' })
     const d = this._shareData
     if (d) {
       return {
@@ -362,6 +365,7 @@ Page({
   },
 
   onShareTimeline() {
+    trackEvent('share', { type: 'timeline' })
     const d = this._shareData
     if (d) {
       return {
