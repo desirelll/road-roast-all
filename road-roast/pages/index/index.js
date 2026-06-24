@@ -118,8 +118,8 @@ Page({
         })
       },
       fail: (err) => {
-        this.setData({ mapLoaded: false, mapLoading: false })
-        // 权限被拒绝时引导用户去设置
+        // 定位失败时使用默认坐标显示地图，而非显示降级页
+        this.setData({ mapLoaded: true, mapLoading: false })
         if (err.errMsg && err.errMsg.includes('auth deny')) {
           wx.showModal({
             title: '需要定位权限',
