@@ -59,14 +59,27 @@
   </view>
 
   <!-- 搜索无结果 -->
-  <view class="search-results" wx:if="{{searchKeyword && searchResults.length === 0 && !posting}}">
+  <view class="search-results" wx:if="{{searchKeyword && searchResults.length === 0 && !searching && !posting}}">
     <view class="no-result">
       <text>没找到 "{{searchKeyword}}"，试试其他关键词</text>
     </view>
   </view>
 
+  <!-- 搜索中 -->
+  <view class="search-results" wx:if="{{searching}}">
+    <view class="no-result">
+      <text>搜索中...</text>
+    </view>
+  </view>
+
+  <!-- 地图骨架屏 -->
+  <view class="map-skeleton" wx:if="{{mapLoading}}">
+    <view class="skeleton-icon">📍</view>
+    <view class="skeleton-text">定位中...</view>
+  </view>
+
   <!-- 地图 -->
-  <view class="map-container" wx:if="{{mapLoaded}}">
+  <view class="map-container" wx:elif="{{mapLoaded}}">
     <map
       id="roadMap"
       latitude="{{latitude}}"

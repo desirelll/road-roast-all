@@ -68,4 +68,17 @@ function callFunction(name, data = {}, options = {}) {
     })
 }
 
-module.exports = { callFunction, forceHideLoading }
+/**
+ * 安全的页面跳转，防止页面栈溢出
+ * 微信小程序页面栈上限 10 层，接近上限时用 redirectTo 替代
+ */
+function safeNavigate(url) {
+  const pages = getCurrentPages()
+  if (pages.length >= 9) {
+    wx.redirectTo({ url })
+  } else {
+    wx.navigateTo({ url })
+  }
+}
+
+module.exports = { callFunction, forceHideLoading, safeNavigate }

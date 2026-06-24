@@ -63,9 +63,28 @@
 
 ---
 
+### 2026-06-23 — P2 UX 问题修复
+
+**改动**
+- 首页增加地图加载骨架屏，替代闪烁的"无法获取定位"降级页
+- Marker 点击跳转路段详情（markerId 反查 road 数据）
+- 搜索防抖从 300ms 调整为 500ms，增加 generation counter 竞态保护
+- 搜索失败时 toast 提示（之前静默吞错）
+- safeNavigate 封装，页面栈接近上限时用 redirectTo 替代
+
+**涉及文件**
+- `pages/index/index.js` — 骨架屏、Marker 点击、搜索竞态保护
+- `pages/index/index.wxml` — 骨架屏 UI
+- `pages/index/index.wxss` — 骨架屏样式
+- `pages/ranking/ranking.js` — safeNavigate
+- `pages/profile/profile.js` — safeNavigate
+- `utils/cloud.js` — safeNavigate 封装
+
+---
+
 ## 中期（上线后迭代）
 
-- [ ] P2 UX 问题修复：首页骨架屏、时间格式化、Marker 点击交互、页面栈溢出防护
+- [x] P2 UX 问题修复：首页骨架屏、时间格式化、Marker 点击交互、页面栈溢出防护
 - [ ] 朋友圈原生分享：增加 onShareTimeline
 - [ ] 数据埋点：贴罚单数、搜索次数、分享次数
 - [ ] geocoder/road-search 公共模块抽取（签名函数、formatTime）

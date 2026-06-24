@@ -1,4 +1,4 @@
-const { callFunction } = require('../../utils/cloud')
+const { callFunction, safeNavigate } = require('../../utils/cloud')
 
 Page({
   data: {
@@ -13,9 +13,11 @@ Page({
     resultAnim: false,
     showPanel: false,
     mapLoaded: false,
+    mapLoading: true,
     posting: false,
     showShareCanvas: false,
     ticketCity: '',
+    searching: false,
     // 授权相关
     isAuthorized: false,
     tempAvatar: '',
@@ -24,6 +26,7 @@ Page({
   },
 
   onLoad() {
+    this._searchGen = 0
     this.checkAuthState()
     this.getLocation()
     this.loadHotMarkers()
@@ -102,11 +105,12 @@ Page({
         this.setData({
           latitude: res.latitude,
           longitude: res.longitude,
-          mapLoaded: true
+          mapLoaded: true,
+          mapLoading: false
         })
       },
       fail: (err) => {
-        this.setData({ mapLoaded: false })
+        this.setData({ mapLoaded: false, mapLoading: false })
         // 权限被拒绝时引导用户去设置
         if (err.errMsg && err.errMsg.includes('auth deny')) {
           wx.showModal({
@@ -135,18 +139,18 @@ Page({
       }, { loading: false })
 
       if (res.code === 0 && res.data) {
-        const markers = res.data
-          .filter((item) => item.location)
-          .map((item, index) => ({
-            id: index,
-            latitude: item.location.lat || item.location.latitude,
-            longitude: item.location.lng || item.location.longitude,
-            title: item.name,
-            callout: { content: `${item.name} (${item.totalTickets}罚单)`, fontSize: 12, padding: 6 },
-            iconPath: '/images/marker-ticket.png',
-            width: 28,
-            height: 36
-          }))
+        const roads = res.data.filter((item) => item.location)
+        this._markerRoads = roads
+        const markers = roads.map((item, index) => ({
+          id: index,
+          latitude: item.location.lat || item.location.latitude,
+          longitude: item.location.lng || item.location.longitude,
+          title: item.name,
+          callout: { content: `${item.name} (${item.totalTickets}罚单)`, fontSize: 12, padding: 6 },
+          iconPath: '/images/marker-ticket.png',
+          width: 28,
+          height: 36
+        }))
         this.setData({ markers })
       }
     } catch (e) {
@@ -164,25 +168,33 @@ Page({
     }
 
     if (!keyword.trim()) {
-      this.setData({ searchResults: [] })
+      this.setData({ searchResults: [], searching: false })
       return
     }
 
+    this.setData({ searching: true })
     this._searchTimer = setTimeout(() => {
       this.doSearch(keyword.trim())
-    }, 300)
+    }, 500)
   },
 
   async doSearch(keyword) {
     if (!keyword) return
 
+    // 竞态保护：记录请求版本号
+    const gen = ++this._searchGen
+
     try {
       const res = await callFunction('road-search', { keyword }, { loading: false })
+      // 版本号不匹配，丢弃过期结果
+      if (gen !== this._searchGen) return
       if (res.code === 0) {
-        this.setData({ searchResults: res.data })
+        this.setData({ searchResults: res.data, searching: false })
       }
     } catch (e) {
-      // 搜索失败静默处理
+      if (gen !== this._searchGen) return
+      this.setData({ searching: false })
+      wx.showToast({ title: '搜索失败，请重试', icon: 'none' })
     }
   },
 
@@ -209,8 +221,10 @@ Page({
 
   onMarkerTap(e) {
     const { markerId } = e.detail
-    // marker tap 通过 bindmarkertap 返回 markerId，需要手动找到对应 road
-    // 简化：不做地图 marker 点击选择，直接通过 callout 展示
+    const roads = this._markerRoads || []
+    const road = roads[markerId]
+    if (!road || !road.roadId) return
+    safeNavigate(`/pages/road-detail/road-detail?roadId=${road.roadId}`)
   },
 
   async reverseGeocode(lat, lng) {

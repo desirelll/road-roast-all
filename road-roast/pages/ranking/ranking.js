@@ -1,4 +1,4 @@
-const { callFunction } = require('../../utils/cloud')
+const { callFunction, safeNavigate } = require('../../utils/cloud')
 
 Page({
   data: {
@@ -104,9 +104,7 @@ Page({
   onRoadTap(e) {
     const roadId = e.currentTarget.dataset.roadId
     if (!roadId) return
-    wx.navigateTo({
-      url: `/pages/road-detail/road-detail?roadId=${roadId}`
-    })
+    safeNavigate(`/pages/road-detail/road-detail?roadId=${roadId}`)
   },
 
   onShareAppMessage() {
