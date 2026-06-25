@@ -17,51 +17,30 @@ exports.main = async (event, context) => {
     return { code: -1, message: '路段信息不完整' }
   }
 
-  if (comment && (typeof comment !== 'string' || comment.trim().length > 50)) {
+  if (comment !== undefined && comment !== null && typeof comment !== 'string') {
+    return { code: -1, message: '吐槽最多50个字' }
+  }
+
+  const finalComment = comment ? comment.trim() : ''
+  if (finalComment.length > 50) {
     return { code: -1, message: '吐槽最多50个字' }
   }
 
   const today = formatDate(new Date())
-  let finalRoadId = roadId
+  let finalRoadId
 
-  // 1. 查找或创建 Road
-  if (!finalRoadId) {
-    try {
-      const roadRes = await db.collection('Road')
-        .where({ name: roadName, city })
-        .get()
-
-      if (roadRes.data.length > 0) {
-        finalRoadId = roadRes.data[0]._id
-      } else {
-        const createRoadRes = await db.collection('Road').add({
-          data: {
-            province,
-            city,
-            name: roadName,
-            fullName: `${province}-${city}-${roadName}`,
-            location: db.Geo.Point(
-              location ? (location.longitude || location.lng || 0) : 0,
-              location ? (location.latitude || location.lat || 0) : 0
-            ),
-            totalTickets: 0,
-            createdAt: db.serverDate()
-          }
-        })
-        finalRoadId = createRoadRes._id
-      }
-    } catch (e) {
-      console.error('ticket-create Road error:', e)
-      return { code: -1, message: '路段查询失败: ' + (e.message || '请重试') }
-    }
+  try {
+    finalRoadId = await ensureRoad(roadId, { roadName, province, city, location })
+  } catch (e) {
+    console.error('ticket-create Road error:', e)
+    return { code: -1, message: '路段查询失败: ' + (e.message || '请重试') }
   }
 
-  // 2. 内容安全检测 + 获取用户信息（并行执行）
   let nickname = ''
   let avatar = ''
   try {
     const [, userRes] = await Promise.all([
-      comment ? cloud.openapi.security.msgSecCheck({ content: comment }) : Promise.resolve(),
+      finalComment ? cloud.openapi.security.msgSecCheck({ content: finalComment }) : Promise.resolve(),
       db.collection('User').where({ openid }).get().catch(() => ({ data: [] }))
     ])
     if (userRes.data.length > 0) {
@@ -72,10 +51,11 @@ exports.main = async (event, context) => {
     return { code: -3, message: '内容包含敏感词，请修改' }
   }
 
-  // 4. 利用 DailyLimit._id 唯一性做每日限制（放在安全检测之后，避免检测失败留下脏数据）
   const limitId = `${openid}_${finalRoadId}_${today}`
+  const transaction = await db.startTransaction()
+
   try {
-    await db.collection('DailyLimit').add({
+    await transaction.collection('DailyLimit').add({
       data: {
         _id: limitId,
         userId: openid,
@@ -83,42 +63,26 @@ exports.main = async (event, context) => {
         date: today
       }
     })
-  } catch (e) {
-    // _id 重复 → 今天已经贴过了
-    return { code: -2, message: '今天已经给这条路贴过罚单了' }
-  }
 
-  // 5. 创建 Ticket + 更新 Road.totalTickets + 更新 User.totalTickets
-  try {
-    const ticketRes = await db.collection('Ticket').add({
+    const ticketRes = await transaction.collection('Ticket').add({
       data: {
         userId: openid,
         roadId: finalRoadId,
-        comment: comment || '',
+        comment: finalComment,
         nickname,
         avatar,
         createdAt: db.serverDate()
       }
     })
 
-    // 并行更新 Road 和 User 的罚单计数
-    // User 使用 set 确保记录不存在时也能创建
-    await Promise.all([
-      db.collection('Road').doc(finalRoadId).update({
-        data: { totalTickets: db.command.inc(1) }
-      }),
-      db.collection('User').where({ openid }).set({
-        data: {
-          openid,
-          totalTickets: db.command.inc(1),
-          createdAt: db.serverDate()
-        }
-      })
-    ])
+    await transaction.collection('Road').doc(finalRoadId).update({
+      data: { totalTickets: db.command.inc(1) }
+    })
+    await updateUserTotalTickets(transaction, openid)
 
-    // 查询更新后的 Road 信息（inc 是原子操作，此时已是最新的）
-    const roadRes = await db.collection('Road').doc(finalRoadId).get()
+    const roadRes = await transaction.collection('Road').doc(finalRoadId).get()
     const road = roadRes.data
+    await transaction.commit()
 
     return {
       code: 0,
@@ -132,9 +96,81 @@ exports.main = async (event, context) => {
       message: '贴罚单成功'
     }
   } catch (e) {
+    try {
+      await transaction.rollback()
+    } catch (rollbackErr) {
+      console.error('ticket-create rollback error:', rollbackErr)
+    }
+    if (isDuplicateKeyError(e)) {
+      return { code: -2, message: '今天已经给这条路贴过罚单了' }
+    }
     console.error('ticket-create write error:', e)
     return { code: -1, message: '贴罚单失败: ' + (e.message || '请重试') }
   }
+}
+
+async function ensureRoad(roadId, road) {
+  if (roadId) {
+    try {
+      const roadRes = await db.collection('Road').doc(roadId).get()
+      if (roadRes.data) return roadId
+    } catch (e) {
+      // 传入的 roadId 可能来自旧搜索结果，继续按路名兜底。
+    }
+  }
+
+  const { roadName, province, city, location } = road
+  const roadRes = await db.collection('Road')
+    .where({ name: roadName, city })
+    .get()
+
+  if (roadRes.data.length > 0) {
+    return roadRes.data[0]._id
+  }
+
+  const createRoadRes = await db.collection('Road').add({
+    data: {
+      province,
+      city,
+      name: roadName,
+      fullName: `${province}-${city}-${roadName}`,
+      location: db.Geo.Point(
+        location ? (location.longitude || location.lng || 0) : 0,
+        location ? (location.latitude || location.lat || 0) : 0
+      ),
+      totalTickets: 0,
+      createdAt: db.serverDate()
+    }
+  })
+  return createRoadRes._id
+}
+
+async function updateUserTotalTickets(transaction, openid) {
+  const userRes = await transaction.collection('User').where({ openid }).get()
+  if (userRes.data.length > 0) {
+    return transaction.collection('User').doc(userRes.data[0]._id).update({
+      data: {
+        totalTickets: db.command.inc(1),
+        updatedAt: db.serverDate()
+      }
+    })
+  }
+
+  return transaction.collection('User').add({
+    data: {
+      openid,
+      nickname: '',
+      avatar: '',
+      totalTickets: 1,
+      createdAt: db.serverDate(),
+      updatedAt: db.serverDate()
+    }
+  })
+}
+
+function isDuplicateKeyError(e) {
+  const msg = `${e.errMsg || ''} ${e.message || ''}`
+  return msg.includes('duplicate') || msg.includes('already exists') || msg.includes('-502001')
 }
 
 function formatDate(date) {

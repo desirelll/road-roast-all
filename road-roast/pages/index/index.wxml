@@ -1,6 +1,6 @@
 <view class="container">
   <!-- 授权弹窗 -->
-  <view class="auth-overlay" wx:if="{{!isAuthorized}}">
+  <view class="auth-overlay" wx:if="{{!authChecking && !isAuthorized}}">
     <view class="auth-panel">
       <view class="auth-title">欢迎使用路路辣评</view>
       <view class="auth-desc">请设置你的头像和昵称</view>
@@ -18,7 +18,7 @@
         <input class="auth-nickname-input" type="nickname" placeholder="点击获取微信昵称" value="{{tempNickname}}" bindinput="onNicknameInput" />
       </view>
 
-      <button class="auth-submit-btn" bindtap="onAuthSubmit" disabled="{{!tempAvatar || !tempNickname.trim()}}">
+      <button class="auth-submit-btn" bindtap="onAuthSubmit" disabled="{{!canSubmitAuth}}">
         进入小程序
       </button>
     </view>
@@ -91,7 +91,10 @@
       bindmarkertap="onMarkerTap"
     />
     <view class="locate-btn" bindtap="onLocateUser">
-      <text>⊕</text>
+      <text>{{locationStatus === 'loading' ? '...' : '⊕'}}</text>
+    </view>
+    <view class="location-hint" wx:if="{{locationStatus === 'idle' || locationStatus === 'denied' || locationStatus === 'failed'}}">
+      <text>未开启定位，可搜索路段名</text>
     </view>
   </view>
 
@@ -113,7 +116,7 @@
   </view>
 
   <!-- 定位失败降级 -->
-  <view class="map-placeholder" wx:else>
+  <view class="map-placeholder" wx:if="{{!mapLoading && !mapLoaded}}">
     <text class="map-placeholder-icon">📍</text>
     <text class="map-placeholder-text">无法获取定位</text>
     <text class="map-placeholder-hint">请授权定位或搜索路段名</text>

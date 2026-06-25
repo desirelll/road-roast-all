@@ -15,9 +15,10 @@
         type="nickname"
         placeholder="点击设置昵称"
         value="{{userInfo.nickname}}"
-        bindchange="onNicknameChange"
+        bindinput="onNicknameInput"
       />
       <view class="user-stats">累计贴罚单 <text class="count">{{totalTickets}}</text> 张</view>
+      <view class="profile-save-status" wx:if="{{profileSaveText}}">{{profileSaveText}}</view>
     </view>
   </view>
 

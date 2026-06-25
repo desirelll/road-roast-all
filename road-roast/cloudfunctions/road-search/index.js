@@ -37,33 +37,39 @@ exports.main = async (event, context) => {
       searchLocalRoads(kw)
     ])
 
-    const localMap = new Map()
+    const localByName = new Map()
+    const localByCityName = new Map()
     localRoads.forEach((r) => {
-      localMap.set(r.name, r.totalTickets || 0)
+      localByName.set(r.name, r)
+      localByCityName.set(`${r.city || ''}_${r.name}`, r)
     })
 
-    const merged = poiResults.map((item) => ({
-      id: item.id,
-      name: item.title,
-      address: item.address,
-      province: item.province || '',
-      city: item.city || '',
-      location: item.location,
-      ticketCount: localMap.get(item.title) || 0,
-      isExisting: localMap.has(item.title)
-    }))
+    const merged = poiResults.map((item) => {
+      const localRoad = localByCityName.get(`${item.city || ''}_${item.title}`)
+        || localByName.get(item.title)
+      return {
+        id: localRoad ? localRoad._id : item.id,
+        roadId: localRoad ? localRoad._id : null,
+        name: item.title,
+        address: item.address,
+        province: item.province || '',
+        city: item.city || '',
+        location: item.location,
+        ticketCount: localRoad ? localRoad.totalTickets || 0 : 0,
+        isExisting: Boolean(localRoad)
+      }
+    })
 
     localRoads.forEach((r) => {
-      if (!merged.find((m) => m.name === r.name)) {
+      if (!merged.find((m) => m.name === r.name && m.city === r.city)) {
         merged.push({
           id: r._id,
+          roadId: r._id,
           name: r.name,
           address: r.fullName || '',
           province: r.province || '',
           city: r.city || '',
-          location: r.location
-            ? { lat: r.location.lat, lng: r.location.lng }
-            : null,
+          location: formatLocation(r.location),
           ticketCount: r.totalTickets || 0,
           isExisting: true
         })
@@ -78,13 +84,12 @@ exports.main = async (event, context) => {
     const localRoads = await searchLocalRoads(kw)
     const fallback = localRoads.map((r) => ({
       id: r._id,
+      roadId: r._id,
       name: r.name,
       address: r.fullName || '',
       province: r.province || '',
       city: r.city || '',
-      location: r.location
-        ? { lat: r.location.lat, lng: r.location.lng }
-        : null,
+      location: formatLocation(r.location),
       ticketCount: r.totalTickets || 0,
       isExisting: true
     }))
@@ -164,6 +169,14 @@ async function searchLocalRoads(keyword) {
   } catch (e) {
     return []
   }
+}
+
+function formatLocation(location) {
+  if (!location) return null
+  const lat = location.lat ?? location.latitude ?? location._latitude
+  const lng = location.lng ?? location.longitude ?? location._longitude
+  if (lat === undefined || lng === undefined) return null
+  return { lat, lng }
 }
 
 function buildQuery(params) {

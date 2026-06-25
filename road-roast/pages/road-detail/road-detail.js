@@ -16,7 +16,7 @@ Page({
   },
 
   onLoad(options) {
-    const { roadId } = options
+    const roadId = options.roadId || parseScene(options.scene).roadId
     if (!roadId) {
       wx.showToast({ title: '路段不存在', icon: 'none' })
       setTimeout(() => wx.navigateBack(), 1500)
@@ -135,3 +135,18 @@ Page({
     }
   }
 })
+
+function parseScene(scene = '') {
+  if (!scene) return {}
+  let decodedScene = scene
+  try {
+    decodedScene = decodeURIComponent(scene)
+  } catch (e) {
+    decodedScene = scene
+  }
+  return decodedScene.split('&').reduce((acc, pair) => {
+    const [key, value = ''] = pair.split('=')
+    if (key) acc[key] = decodeURIComponent(value)
+    return acc
+  }, {})
+}

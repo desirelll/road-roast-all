@@ -1,4 +1,5 @@
 const { callFunction, safeNavigate } = require('../../utils/cloud')
+const { shouldGuideLocationSetting } = require('../../utils/location-auth')
 
 Page({
   data: {
@@ -15,11 +16,36 @@ Page({
   },
 
   onLoad() {
-    this.getUserCity()
+    this.getUserCity({ userInitiated: false })
     this.loadRankings()
   },
 
-  async getUserCity() {
+  async getUserCity(options = {}) {
+    const { userInitiated = false } = options
+    try {
+      const settingRes = await new Promise((resolve, reject) => {
+        wx.getSetting({ success: resolve, fail: reject })
+      })
+      const authSetting = settingRes.authSetting || {}
+
+      if (shouldGuideLocationSetting(authSetting)) {
+        if (userInitiated) {
+          return await this.openLocationSettingForCity()
+        }
+        return false
+      }
+
+      if (authSetting['scope.userLocation'] !== true && !userInitiated) {
+        return false
+      }
+
+      return await this.locateAndSetCity()
+    } catch (e) {
+      return false
+    }
+  },
+
+  async locateAndSetCity() {
     try {
       const locRes = await new Promise((resolve, reject) => {
         wx.getLocation({ type: 'gcj02', success: resolve, fail: reject })
@@ -29,11 +55,42 @@ Page({
         lng: locRes.longitude
       }, { loading: false })
       if (res.code === 0 && res.data?.city) {
-        this.setData({ city: res.data.city.replace('市', '') })
+        this.setData({ city: res.data.city })
+        return true
       }
+      return false
     } catch (e) {
       // 定位失败或逆编码失败，city 保持空字符串
+      return false
     }
+  },
+
+  openLocationSettingForCity() {
+    return new Promise((resolve) => {
+      wx.showModal({
+        title: '需要定位权限',
+        content: '请在设置中允许访问位置信息，用于查看我的城市排行榜',
+        confirmText: '去设置',
+        success: (modalRes) => {
+          if (!modalRes.confirm) {
+            resolve(false)
+            return
+          }
+          wx.openSetting({
+            success: async (settingRes) => {
+              const authSetting = settingRes.authSetting || {}
+              if (authSetting['scope.userLocation'] === true) {
+                resolve(await this.locateAndSetCity())
+              } else {
+                resolve(false)
+              }
+            },
+            fail: () => resolve(false)
+          })
+        },
+        fail: () => resolve(false)
+      })
+    })
   },
 
   onPullDownRefresh() {
@@ -100,16 +157,17 @@ Page({
     }
   },
 
-  onScopeChange(e) {
+  async onScopeChange(e) {
     const scope = e.currentTarget.dataset.scope
     if (scope === this.data.scope) return
 
     // 切换到"我的城市"但定位失败时，提示用户
     if (scope === 'city' && !this.data.city) {
-      wx.showToast({ title: '定位失败，请授权定位后重试', icon: 'none' })
-      // 重新尝试定位
-      this.getUserCity()
-      return
+      const located = await this.getUserCity({ userInitiated: true })
+      if (!located || !this.data.city) {
+        wx.showToast({ title: '定位失败，已保持全国榜', icon: 'none' })
+        return
+      }
     }
 
     this.setData({ scope, page: 1, rankings: [], hasMore: true, loading: false }, () => {
