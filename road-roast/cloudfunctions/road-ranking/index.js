@@ -74,39 +74,35 @@ async function periodRanking(scope, period, city, skip, limit) {
     return { code: -1, message: '无效的周期参数' }
   }
 
-  // 构建基础聚合管道（match → group → sort → lookup → 城市过滤）
-  const buildPipeline = (withPaging) => {
-    const p = [
-      { $match: { createdAt: _.gte(startTime) } },
-      { $group: { _id: '$roadId', count: $.sum(1) } },
-      { $sort: { count: -1 } }
-    ]
-    // 先 lookup + 城市过滤，再 skip/limit
-    p.push({
-      $lookup: {
+  const createPeriodQuery = () => {
+    let query = db.collection('Ticket')
+      .aggregate()
+      .match({ createdAt: _.gte(startTime) })
+      .group({ _id: '$roadId', count: $.sum(1) })
+      .sort({ count: -1 })
+      .lookup({
         from: 'Road',
         localField: '_id',
         foreignField: '_id',
         as: 'road'
-      }
-    })
-    p.push({ $unwind: { path: '$road', preserveNullAndEmptyArrays: false } })
+      })
+      .unwind('$road')
+
     if (scope === 'city' && city) {
-      p.push({ $match: { 'road.city': city } })
+      query = query.match({ 'road.city': city })
     }
-    if (withPaging) {
-      p.push({ $skip: skip })
-      p.push({ $limit: limit })
-    }
-    return p
+    return query
   }
 
   // 查总数（应用相同的城市过滤）
-  const countRes = await db.collection('Ticket').aggregate(buildPipeline(false)).end()
+  const countRes = await createPeriodQuery().end()
   const totalCount = countRes.list.length
 
   // 分页查询
-  const res = await db.collection('Ticket').aggregate(buildPipeline(true)).end()
+  const res = await createPeriodQuery()
+    .skip(skip)
+    .limit(limit)
+    .end()
 
   const list = res.list.map((item) => ({
     roadId: item._id,

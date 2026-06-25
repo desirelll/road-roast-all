@@ -19,6 +19,15 @@ test('road-ranking returns location for homepage markers', () => {
   assert.match(source, /location:\s*formatLocation\(item\.road\.location\)/)
 })
 
+test('road-ranking period aggregation uses CloudBase chain API', () => {
+  const source = read('road-roast/cloudfunctions/road-ranking/index.js')
+  assert.doesNotMatch(source, /\.aggregate\(\s*buildPipeline\(/)
+  assert.match(source, /\.aggregate\(\)\s*\n\s*\.match\(/)
+  assert.match(source, /\.lookup\(\{/)
+  assert.match(source, /\.unwind\(['"]\$road['"]\)/)
+  assert.match(source, /\.skip\(skip\)\s*\n\s*\.limit\(limit\)/)
+})
+
 test('road-search keeps local Road id separate from Tencent POI id', () => {
   const source = read('road-roast/cloudfunctions/road-search/index.js')
   assert.match(source, /roadId:\s*localRoad\s*\?\s*localRoad\._id\s*:\s*null/)
