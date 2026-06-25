@@ -44,3 +44,16 @@ test('callFunction only shows one toast for business errors', () => {
   assert.match(source, /_toastShown:\s*true/)
   assert.match(source, /if \(!err\._toastShown\)/)
 })
+
+test('ranking city scope keeps geocoder city name for Road.city matching', () => {
+  const source = read('road-roast/pages/ranking/ranking.js')
+  assert.doesNotMatch(source, /replace\(['"]市['"],\s*['"]['"]\)/)
+  assert.match(source, /this\.setData\(\{\s*city:\s*res\.data\.city\s*\}\)/)
+})
+
+test('ranking empty state switches to ticket tab', () => {
+  const source = read('road-roast/pages/ranking/ranking.wxml')
+  const emptyButton = source.match(/<navigator[^>]*class="empty-btn"[^>]*>/)?.[0] || ''
+  assert.match(emptyButton, /url="\/pages\/index\/index"/)
+  assert.match(emptyButton, /open-type="switchTab"/)
+})

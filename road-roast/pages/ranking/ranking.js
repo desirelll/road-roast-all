@@ -55,7 +55,7 @@ Page({
         lng: locRes.longitude
       }, { loading: false })
       if (res.code === 0 && res.data?.city) {
-        this.setData({ city: res.data.city.replace('市', '') })
+        this.setData({ city: res.data.city })
         return true
       }
       return false

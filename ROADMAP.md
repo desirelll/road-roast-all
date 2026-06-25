@@ -17,6 +17,8 @@
 - share-qrcode 使用上传后的 fileID 获取临时链接，避免 cloudPath 取 URL 失败
 - callFunction 业务错误只 toast 一次
 - 资料页禁止保存空昵称/空头像，并修复昵称防抖保存覆盖头像上传结果的竞态
+- 修复排行榜“我的城市”去掉城市名后缀导致查不到本城市路段的问题
+- 修复排行榜空状态“去贴罚单”无法跳转到贴罚单 Tab 的问题
 
 **涉及文件**
 - `cloudfunctions/road-search/index.js`
@@ -27,6 +29,8 @@
 - `pages/index/index.wxml`
 - `pages/road-detail/road-detail.js`
 - `pages/profile/profile.js`
+- `pages/ranking/ranking.js`
+- `pages/ranking/ranking.wxml`
 - `utils/cloud.js`
 - `tests/static-contracts.test.js`
 
